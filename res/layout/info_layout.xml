@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:padding="6dip"
+	android:background="@color/black">
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:paddingBottom="10dip">
+		<ImageView
+			android:id="@+id/info_icon"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:adjustViewBounds="true"
+			android:maxHeight="50dip"
+			android:layout_gravity="left"
+			android:src="@drawable/folder"/>
+			<LinearLayout
+				android:orientation="vertical"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content">
+					<TextView
+						android:id="@+id/name_label"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:gravity="right"
+						android:paddingRight="24dip"
+						android:maxLines="1"
+						android:textColor="@color/white"
+						android:textStyle="bold"
+						android:textSize="18dip"/>
+					<TextView
+						android:id="@+id/path_label"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:maxLines="1"
+						android:textColor="@color/white"
+						android:paddingRight="4dip"
+						android:gravity="right"/>
+			</LinearLayout>
+	</LinearLayout>
+	
+	<ScrollView
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:padding="8dip"
+		android:layout_weight="2">
+			<TableLayout
+				android:orientation="vertical"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent"
+				android:stretchColumns="*"
+				android:shrinkColumns="*">
+				<TableRow>
+					<TextView
+						android:id="@+id/first_title"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="left"
+						android:text="Number of folders: "/>
+					<TextView
+						android:id="@+id/dirs_label"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="right"/>
+				</TableRow>
+				<TextView android:layout_width="fill_parent" android:layout_height="wrap_content" android:maxHeight="8dip"/>
+				<TableRow>
+					<TextView
+						android:id="@+id/second_title"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="left"
+						android:text="Number of files: "/>
+					<TextView
+						android:id="@+id/files_label"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="right"/>
+				</TableRow>
+				<TextView android:layout_width="fill_parent" android:layout_height="wrap_content" android:maxHeight="8dip"/>
+				<TableRow>
+					<TextView
+						android:id="@+id/third_title"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="left"
+						android:text="Last Modified: "/>
+					<TextView
+						android:id="@+id/time_stamp"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="right"/>
+				</TableRow>
+				<TextView android:layout_width="fill_parent" android:layout_height="wrap_content" android:maxHeight="25dip"/>
+				<TableRow>
+					<TextView
+						android:id="@+id/fourth_title"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="center"
+						android:text="Total size: "/>
+					<TextView
+						android:id="@+id/total_size"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="right"/>
+				</TableRow>
+				<TextView android:layout_width="fill_parent" android:layout_height="wrap_content" android:maxHeight="8dip"/>
+				<TableRow>
+					<TextView
+						android:id="@+id/fifth_title"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="center"
+						android:text="Free space: "/>
+					<TextView
+						android:id="@+id/free_space"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="right"/>
+				</TableRow>
+				<TextView android:layout_width="fill_parent" android:layout_height="wrap_content" android:maxHeight="8dip"/>
+				<TableRow>
+					<TextView
+						android:id="@+id/sixth_title"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="center"
+						android:text="Used space: "/>
+					<TextView
+						android:id="@+id/used_space"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:textColor="@color/white"
+						android:gravity="right"/>
+				</TableRow>
+			</TableLayout>
+	</ScrollView>
+	
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center">
+		<Button
+			android:id="@+id/back_button"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:paddingLeft="20dip"
+			android:paddingRight="20dip"
+			android:text="Back"/>
+		<Button
+			android:id="@+id/zip_button"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Zip folder"/>
+	</LinearLayout>
+</LinearLayout>

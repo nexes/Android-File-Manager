@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_height="fill_parent"
+	android:layout_width="fill_parent"
+	android:minWidth="260dp"
+	android:minHeight="170dp"
+	android:background="@color/black"
+	android:padding="6dp"
+	>
+	<TextView
+		android:id="@+id/music_label"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:textColor="@color/white"/>
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_weight="2"
+		android:gravity="bottom"
+		>
+		<Button
+			android:id="@+id/media_play_button"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:text="Play "/>
+		<Button
+			android:id="@+id/media_close_button"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:text="Close "/>
+	</LinearLayout>
+</LinearLayout>
