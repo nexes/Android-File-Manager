@@ -399,7 +399,7 @@ public class FileManager {
 	 * @return
 	 */
 	public boolean isDirectory(String name) {
-		 return new File(path_stack.peek() + "/" + name).isDirectory();
+		return new File(path_stack.peek() + "/" + name).isDirectory();
 	}
 		
 	/**
@@ -548,20 +548,23 @@ public class FileManager {
 	private void search_file(String dir, String fileName, ArrayList<String> n) {
 		File root_dir = new File(dir);
 		String[] list = root_dir.list();
-		int len = list.length;
 		
-		for (int i = 0; i < len; i++) {
-			File check = new File(dir + "/" + list[i]);
-			String name = check.getName();
-				
-			if(check.isFile() && name.toLowerCase().contains(fileName.toLowerCase())) {
-				n.add(check.getPath());
-			}
-			else if(check.isDirectory()) {
-				if(name.toLowerCase().contains(fileName.toLowerCase()))
+		if(list != null) {
+			int len = list.length;
+			
+			for (int i = 0; i < len; i++) {
+				File check = new File(dir + "/" + list[i]);
+				String name = check.getName();
+					
+				if(check.isFile() && name.toLowerCase().contains(fileName.toLowerCase())) {
 					n.add(check.getPath());
-				
-				search_file(check.getAbsolutePath(), fileName, n);
+				}
+				else if(check.isDirectory()) {
+					if(name.toLowerCase().contains(fileName.toLowerCase()))
+						n.add(check.getPath());
+					
+					search_file(check.getAbsolutePath(), fileName, n);
+				}
 			}
 		}
 	}

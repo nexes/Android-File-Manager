@@ -7,8 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import android.util.Log;
 
-
 public class SettingsManager {
+	
 	private static final String FILE_NAME = "/sdcard/open manager/settings_manager.prfs";
 	private final FileManager file_mg;
 	private int hidden_state = 0;
@@ -27,7 +27,7 @@ public class SettingsManager {
 					new File(FILE_NAME).createNewFile();
 			
 		} catch (IOException e) {
-			e.printStackTrace();
+			Log.e("OpenManager", "couldn't create settings file IOException");
 		}
 	}
 	
@@ -51,7 +51,7 @@ public class SettingsManager {
 		
 		return hidden_state;
 	}
-	
+
 	/**
 	 * 
 	 * @param data

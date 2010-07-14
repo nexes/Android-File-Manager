@@ -19,10 +19,6 @@
 package com.nexes.manager;
 
 import java.io.File;
-//import java.io.FileInputStream;
-//import java.io.FileOutputStream;
-//import java.io.FileNotFoundException;
-//import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.ArrayList;
@@ -54,10 +50,7 @@ public class EventHandler implements OnClickListener {
 	private static final int UNZIP_TYPE =	2;
 	private static final int UNZIPTO_TYPE =	3;
 	private static final int ZIP_TYPE =		4;
-	
-//	private static final String FILE_NAME = "/sdcard/open manager/settings_manager.prfs";
-	
-//	private int hidden_state = 0;
+
 	private final Context context;
 	private final FileManager file_mg;
 	private TableRow delegate;
@@ -253,7 +246,7 @@ public class EventHandler implements OnClickListener {
 	private void display_dialog() {
 		AlertDialog.Builder builder;
     	AlertDialog dialog;
-    	CharSequence[] options = {"Process Info", "Wifi Info"};
+    	CharSequence[] options = {"Process Info", "Wifi Info", "Applications"};
     	
     	builder = new AlertDialog.Builder(context);
     	builder.setTitle("ToolBox");
@@ -270,6 +263,9 @@ public class EventHandler implements OnClickListener {
 					case 1:
 						i = new Intent(context, WirelessManager.class);
 						context.startActivity(i);
+						break;
+					case 2:
+						
 						break;
 				}
 			}
@@ -318,6 +314,7 @@ public class EventHandler implements OnClickListener {
     			String ext = file.toString();
     			String sub_ext = ext.substring(ext.lastIndexOf(".") + 1);
     			
+    			/*This series of if-else if statements will determine which icon is displayed*/
     			if (sub_ext.equalsIgnoreCase("pdf")) 
     				icon.setImageResource(R.drawable.pdf);
     			
@@ -347,8 +344,20 @@ public class EventHandler implements OnClickListener {
     			else if(sub_ext.equalsIgnoreCase("ppt") || sub_ext.equalsIgnoreCase("pptx"))
     				icon.setImageResource(R.drawable.ppt);
     			
+    			else if(sub_ext.equalsIgnoreCase("html"))
+    				icon.setImageResource(R.drawable.html32);
+    			
+    			else if(sub_ext.equalsIgnoreCase("xml"))
+    				icon.setImageResource(R.drawable.xml32);
+    			
+    			else if(sub_ext.equalsIgnoreCase("conf"))
+    				icon.setImageResource(R.drawable.config32);
+    			
     			else if(sub_ext.equalsIgnoreCase("apk"))
     				icon.setImageResource(R.drawable.appicon);
+    			
+    			else if(sub_ext.equalsIgnoreCase("jar"))
+    				icon.setImageResource(R.drawable.jar32);
     			
     			else
     				icon.setImageResource(R.drawable.text);
@@ -402,7 +411,7 @@ public class EventHandler implements OnClickListener {
     		switch(type) {
     			case 0:	/* SEARCH */
     				pr_dialog = ProgressDialog.show(context, "Searching", "Searching current file system...",
-    												true, false);
+    												true, true);
     				break;
     				
     			case 1:	/* COPY */

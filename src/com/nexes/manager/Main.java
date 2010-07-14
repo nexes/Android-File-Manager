@@ -73,7 +73,7 @@ public class Main extends ListActivity {
 	private static final int SETTING_REQ = 	 0x10;			//request code for intent
 
 	/*
-	 * These three classes \must\ be instantiated in this order. 
+	 * These three classes /must/ be instantiated in this order. 
 	 */
 	private final FileManager flmg = new FileManager();
 	private final SettingsManager settings = new SettingsManager(flmg);
@@ -131,6 +131,7 @@ public class Main extends ListActivity {
     @Override
     public void onListItemClick(ListView parent, View view, int position, long id) {
     	final String item = handler.getData(position);
+    	File file = new File(flmg.getCurrentDir() + "/" + item);
     	String item_ext = null;
     	
     	try {
@@ -139,9 +140,13 @@ public class Main extends ListActivity {
     		item_ext = ""; 
     	}
     	
-    	if (flmg.isDirectory(item)) {
-    		handler.updateDirectory(flmg.getNextDir(item, false));
-    		path_label.setText(flmg.getCurrentDir());
+    	/*directory selected*/
+    	if (file.isDirectory()) {
+    		if(file.canRead()) {
+	    		handler.updateDirectory(flmg.getNextDir(item, false));
+	    		path_label.setText(flmg.getCurrentDir());
+    		}else
+    			Toast.makeText(this, "Can't read foldder due to permissions", Toast.LENGTH_SHORT).show();
     	}
     	
     	/*music file selected--add more audio formats*/
@@ -154,11 +159,9 @@ public class Main extends ListActivity {
     	
     	/*photo file selected*/
     	else if(item_ext.equalsIgnoreCase(".jpeg") || item_ext.equalsIgnoreCase(".jpg") ||
-    			item_ext.equalsIgnoreCase(".png") || item_ext.equalsIgnoreCase(".gif") || 
+    			item_ext.equalsIgnoreCase(".png")  || item_ext.equalsIgnoreCase(".gif") || 
     			item_ext.equalsIgnoreCase(".tiff")) {
-    			
-    		File file = new File(flmg.getCurrentDir() +"/"+ item);
-    		
+    			    		
     		if (file.exists()) {
 	    		Intent pic_int = new Intent();
 	    		pic_int.setAction(android.content.Intent.ACTION_VIEW);
@@ -171,7 +174,6 @@ public class Main extends ListActivity {
     	else if(item_ext.equalsIgnoreCase(".m4v") || item_ext.equalsIgnoreCase(".3gp") ||
     			item_ext.equalsIgnoreCase(".wmv") || item_ext.equalsIgnoreCase(".mp4") || 
     			item_ext.equalsIgnoreCase(".ogg")) {
-    		File file = new File(flmg.getCurrentDir() +"/"+ item);
     		
     		if (file.exists()) {
 	    		Intent movie_int = new Intent();
@@ -213,7 +215,6 @@ public class Main extends ListActivity {
     	
     	/*pdf file selected*/
     	else if(item_ext.equalsIgnoreCase(".pdf")) {
-    		File file = new File(flmg.getCurrentDir() +"/"+ item);
     		
     		if(file.exists()) {
 	    		Intent file_int = new Intent();
@@ -223,9 +224,8 @@ public class Main extends ListActivity {
     		}
     	}
     	
-    	/*android application file*/
+    	/*Android application file*/
     	else if(item_ext.equalsIgnoreCase(".apk")){
-    		File file = new File(flmg.getCurrentDir() +"/"+ item);
     		
     		if(file.exists()) {
     			Log.e("permissions", file.canRead() +" "+ file.canWrite());
@@ -238,7 +238,6 @@ public class Main extends ListActivity {
     	
     	/* HTML file */
     	else if(item_ext.equalsIgnoreCase(".html")) {
-    		File file = new File(flmg.getCurrentDir() + "/" + item);
     		
     		if(file.exists()) {
     			Intent other_int = new Intent();
@@ -576,7 +575,7 @@ public class Main extends ListActivity {
     		return true;
     		
     	} else if(keycode == KeyEvent.KEYCODE_BACK && use_back_key && current.equals("/")) {
-    		Toast.makeText(Main.this, "Press back again to quit.", Toast.LENGTH_LONG).show();
+    		Toast.makeText(Main.this, "Press back again to quit.", Toast.LENGTH_SHORT).show();
     		use_back_key = false;
     		path_label.setText(flmg.getCurrentDir());
     		
