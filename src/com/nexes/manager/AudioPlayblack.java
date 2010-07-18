@@ -1,6 +1,6 @@
 /*
-    Droid Manager, an open source file manager for the Android system
-    Copyright (C) 2009  Joe Berria
+    Open Manager, an open source file manager for the Android system
+    Copyright (C) 2009, 2010  Joe Berria <nexesdevelopment@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ public class AudioPlayblack extends Activity {
 		
 		setContentView(R.layout.audio_layout);
 		mp = new MediaPlayer();
-		
+
 		label = (TextView)findViewById(R.id.music_label);
 		play_button = (Button)findViewById(R.id.media_play_button);
 		play_button.setText("Preview");
@@ -64,20 +64,27 @@ public class AudioPlayblack extends Activity {
 	}
 	
 	private class ButtonHandler implements OnClickListener {
+		private boolean init = false;
+		
 		@Override
 		public void onClick(View v) {
 			if(v.getId() == R.id.media_play_button) {
-				if(!mp.isPlaying()) {
+				if(!init) {
 					try {
 						mp.setDataSource(music_path);
 						mp.prepare();
 						mp.start();
-						
+						init = true;
 					} catch (IOException e) {
-												
+						e.printStackTrace();	
 					}
-				} else
-					mp.pause();
+					
+				} else {
+					if(mp.isPlaying())
+						mp.pause();
+					else
+						mp.start();
+				}
 				
 			} else if(v.getId() == R.id.media_close_button)  {
 				if(mp.isPlaying())

@@ -184,7 +184,7 @@ public class Main extends ListActivity {
     	}
     	
     	/*zip and gzip file selected*/
-    	else if(item_ext.equalsIgnoreCase(".zip") || item_ext.equalsIgnoreCase(".gzip")) {
+    	else if(item_ext.equalsIgnoreCase(".zip")) { //|| item_ext.equalsIgnoreCase(".gzip")) {
     		
     		AlertDialog.Builder builder = new AlertDialog.Builder(this);
     		AlertDialog alert;
