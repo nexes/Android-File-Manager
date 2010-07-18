@@ -146,7 +146,7 @@ public class Main extends ListActivity {
 	    		handler.updateDirectory(flmg.getNextDir(item, false));
 	    		path_label.setText(flmg.getCurrentDir());
     		}else
-    			Toast.makeText(this, "Can't read foldder due to permissions", Toast.LENGTH_SHORT).show();
+    			Toast.makeText(this, "Can't read folder due to permissions", Toast.LENGTH_SHORT).show();
     	}
     	
     	/*music file selected--add more audio formats*/
