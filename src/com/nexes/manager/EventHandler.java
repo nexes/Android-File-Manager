@@ -246,7 +246,10 @@ public class EventHandler implements OnClickListener {
 	private void display_dialog() {
 		AlertDialog.Builder builder;
     	AlertDialog dialog;
-    	CharSequence[] options = {"Process Info", "Wifi Info", "Applications"};
+    	
+    	//un-comment Wifi Info here and in the manafest file 
+    	//to display Wifi info. Also uncomment and change case number below
+    	CharSequence[] options = {"Process Info", /*"Wifi Info",*/ "Application backup"};
     	
     	builder = new AlertDialog.Builder(context);
     	builder.setTitle("ToolBox");
@@ -260,12 +263,15 @@ public class EventHandler implements OnClickListener {
 						i = new Intent(context, ProcessManager.class);
 						context.startActivity(i);
 						break;
+/*
 					case 1:
 						i = new Intent(context, WirelessManager.class);
 						context.startActivity(i);
 						break;
-					case 2:
-						
+*/
+					case 1:
+						i = new Intent(context, ApplicationBackup.class);
+						context.startActivity(i);
 						break;
 				}
 			}
