@@ -64,7 +64,7 @@
 			<View
 				android:layout_width="fill_parent"
 				android:layout_height="3dp"
-				android:background="@color/darkBlue"/>
+				android:background="@color/darkGray"/>
 				
 	</TableLayout>
 </ScrollView>

@@ -27,13 +27,19 @@
 	    
 	    <activity android:name=".WirelessManager" 
 	    		  android:label="Wireless Information"/>
+	    		  
+	    <activity android:name=".ApplicationBackup"
+	    		  android:label="Installed Applications"/>
 	        
 </application>
     <uses-sdk android:minSdkVersion="3" />
     
 <uses-permission android:name="android.permission.RESTART_PACKAGES"/>
+
+<!-- un-comment this in order to allow wifi information displayed
 <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-
+ -->
+ 
 </manifest> 
 

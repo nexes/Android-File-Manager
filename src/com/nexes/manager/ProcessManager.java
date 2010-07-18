@@ -21,13 +21,13 @@ package com.nexes.manager;
 import android.app.ListActivity;
 import android.app.AlertDialog;
 import android.os.Bundle;
+//import android.os.Process;
 import android.view.View;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManager.MemoryInfo;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -38,7 +38,6 @@ import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +99,7 @@ public class ProcessManager extends ListActivity {
 				
 				switch (choice) {
 					case 0:
-						Log.e("index is", ""+ choice);
+//						Process.killProcess(display_process.get(index).pid);
 						activity_man.restartPackage(display_process.get(index).processName);
 						update_list(true);
 						break;
