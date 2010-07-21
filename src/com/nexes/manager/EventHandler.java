@@ -29,6 +29,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.view.View.OnClickListener;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,11 +41,28 @@ import android.widget.Toast;
 //import android.util.Log;
 
 /**
+ * This class sits between the Main activity and the FileManager class. 
+ * To keep the FileManager class modular, This class exists to handle 
+ * UI events and communicate that information to the FileManger class
+ * 
+ * This class is responsible for the buttons onClick method. If one needs
+ * to change the functionality of the buttons found from the Main activity
+ * or add button logic, this is the class that will need to be edited.
+ * 
+ * This class is responsible for handling the information that is displayed
+ * from the list view (the files and folder) with a a nested class TableRow.
+ * The TableRow class is responsible for displaying which icon is shown for each
+ * entry. For example a folder will display the folder icon, a Word doc will display
+ * a word icon and so on. If more icons are to be added, the TableRow class must be updated
+ * to display those changes. 
  * 
  * @author Joe Berria
- *
  */
 public class EventHandler implements OnClickListener {
+	/*
+	 * Unique types to control which file operation gets
+	 * performed in the background
+	 */
 	private static final int SEARCH_TYPE =	0;
 	private static final int COPY_TYPE =	1;
 	private static final int UNZIP_TYPE =	2;
@@ -53,11 +71,15 @@ public class EventHandler implements OnClickListener {
 
 	private final Context context;
 	private final FileManager file_mg;
+	private int color = Color.WHITE;
 	private TableRow delegate;
 	private ArrayList<String> data_source;
 	
+	private TextView path_label;
+	
 	/*
-	 * 
+	 * The comparator object that is passed into Arrays.sort method
+	 * to Sort alphabetical. This can be better implemented.
 	 */
 	private static final Comparator alph = new Comparator<String>() {
 		@Override
@@ -67,7 +89,9 @@ public class EventHandler implements OnClickListener {
 	};
 	
 	/*
-	 * 
+	 * The comparator object that is passed into the Arrays.sort method
+	 * to sort by type. If IndexOutOfBoundsException is caught, then this returns
+	 * a zero as it is a directory. This can be better implemented.
 	 */
 	private static final Comparator type = new Comparator<String>() {
 		@Override
@@ -88,9 +112,11 @@ public class EventHandler implements OnClickListener {
 	};
 
 	/**
-	 * 	
-	 * @param context
-	 * @param manager
+	 * Creates an EventHandler object. This object is used to communicate
+	 * most work from the Main activity to the FileManager class.
+	 * 
+	 * @param context	The context of the main activity e.g  Main
+	 * @param manager	The FileManager object that was instantiated from Main
 	 */
 	public EventHandler(Context context, final FileManager manager) {
 		this.context = context;
@@ -98,88 +124,119 @@ public class EventHandler implements OnClickListener {
 		
 		data_source = new ArrayList<String>(file_mg.getHomeDir());
 	}
-	
+
 	/**
+	 * This method is called to the Main activity and this has the same
+	 * reference to the same object so when changes are made here or there
+	 * they will display in the same way.
 	 * 
-	 * @param adapter
+	 * @param adapter	The TableRow object
 	 */
 	public void setListAdapter(TableRow adapter) {
 		delegate = adapter;
 	}
 	
 	/**
+	 * This method is called from the Main activity and is passed
+	 * the TextView that should be updated as the directory changes
+	 * so the user knows which folder they are in.
 	 * 
-	 * @param name
+	 * @param label	The label to update as the directory changes
+	 */
+	public void setUpdateLabel(TextView path) {
+		path_label = path;
+	}
+	
+	/**
+	 * Will search for a file then display all files with the 
+	 * search parameter in its name
+	 * 
+	 * @param name	the name to search for
 	 */
 	public void searchForFile(String name) {
 		new BackgroundSearch(SEARCH_TYPE).execute(name);
 	}
 	
 	/**
+	 * Will copy a file or folder to another location.
 	 * 
-	 * @param oldLocation
-	 * @param newLocation
+	 * @param oldLocation	from location
+	 * @param newLocation	to location
 	 */
 	public void copyFile(String oldLocation, String newLocation) {
 		new BackgroundSearch(COPY_TYPE).execute(oldLocation, newLocation);
 	}
 	
 	/**
+	 * This will extract a zip file to the same directory.
 	 * 
-	 * @param file
-	 * @param path
+	 * @param file	the zip file name
+	 * @param path	the path were the zip file will be extracted (the current dir)
 	 */
 	public void unZipFile(String file, String path) {
 		new BackgroundSearch(UNZIP_TYPE).execute(file, path);
 	}
 	
 	/**
-	 * 
-	 * @param name
-	 * @param newDir
-	 * @param oldDir
+	 * This method will take a zip file and extract it to another
+	 * location
+	 *  
+	 * @param name		the name of the of the new file (the dir name is used)
+	 * @param newDir	the dir where to extract to
+	 * @param oldDir	the dir where the zip file is
 	 */
 	public void unZipFileToDir(String name, String newDir, String oldDir) {
 		new BackgroundSearch(UNZIPTO_TYPE).execute(name, newDir, oldDir);
 	}
 	
 	/**
+	 * Creates a zip file
 	 * 
-	 * @param zipPath
+	 * @param zipPath	the path to the directory you want to zip
 	 */
 	public void zipFile(String zipPath) {
 		new BackgroundSearch(ZIP_TYPE).execute(zipPath);
 	}
 
 	/**
-	 * 
+	 *  This method, handles the button presses of the top buttons found
+	 *  in the Main activity. 
 	 */
 	@Override
 	public void onClick(View v) {
 		
 		if(v.getId() == R.id.back_button) {
-			if (file_mg.getCurrentDir() != "/") 
+			if (file_mg.getCurrentDir() != "/") {				
 				updateDirectory(file_mg.getPreviousDir());
+				path_label.setText(file_mg.getCurrentDir());
+			}
 			
 		} else if(v.getId() == R.id.home_button) {
 			updateDirectory(file_mg.getHomeDir());
+			path_label.setText(file_mg.getCurrentDir());
 				
 		} else if(v.getId() == R.id.info_button) {
 			Intent i = new Intent(context, DirectoryInfo.class);
 			i.putExtra("PATH_NAME", file_mg.getCurrentDir());
 			context.startActivity(i);
 				
-		}else if(v.getId() == R.id.help_button) {
-			//stub
+		} else if(v.getId() == R.id.help_button) {
+			Intent i = new Intent(context, HelpManager.class);
+			context.startActivity(i);
 			
 		} else if(v.getId() == R.id.manage_button)
 			display_dialog();
 	}
 	
+	public void setTextColor(int color) {
+		this.color = color;
+	}
+	
 	/**
+	 * will return the data in the ArrayList that holds the dir contents. 
 	 * 
-	 * @param position
-	 * @return
+	 * @param position	the indext of the arraylist holding the dir content
+	 * @return the data in the arraylist at position (position)
 	 */
 	public String getData(int position) {
 		
@@ -190,7 +247,10 @@ public class EventHandler implements OnClickListener {
 	}
 	
 	/**
-	 * 
+	 * Sort the contents of the dir alphabetically. This method
+	 * will sort and then call the update method to update the gui so
+	 * you dont have to. calling this method will update the list in 
+	 * Main activity.
 	 */
 	public void sortAlphabetical() {
 		ArrayList<String> list;
@@ -206,6 +266,12 @@ public class EventHandler implements OnClickListener {
 		updateDirectory(list);
 	}
 	
+	/**
+	 * Sort the contents of the dir by type, dir will be listed first.
+	 * This method will sort and then call the update method to update 
+	 * the gui so you dont have to. calling this method will update the 
+	 * list in Main activity.
+	 */
 	public void sortByType() {
 		ArrayList<String> list;
 		Object[] t = data_source.toArray();
@@ -225,8 +291,10 @@ public class EventHandler implements OnClickListener {
 	}
 
 	/**
+	 * called to update the file contents as the user navigates there
+	 * phones file system. 
 	 * 
-	 * @param content
+	 * @param content	an ArrayList of the file/folders in the current dir.
 	 */
 	public void updateDirectory(ArrayList<String> content) {
 		int len = content.size();
@@ -241,7 +309,10 @@ public class EventHandler implements OnClickListener {
 	}
 
 	/**
-	 * 
+	 * This private method is used to display options the user can select when
+	 * the toolbox button is pressed. The wifi option is commented out as it doesn't
+	 * seem to fit with the overall idea of the app. However to display it, just uncomment
+	 * the below code and the code in the AndroidManifest.xml file. 
 	 */
 	private void display_dialog() {
 		AlertDialog.Builder builder;
@@ -281,22 +352,34 @@ public class EventHandler implements OnClickListener {
 	}
     
 	/**
-	 * A nested class to handle displaying a custom view in the ListView 
-	 * of the Main activity.
+	 * A nested class to handle displaying a custom view in the ListView that
+	 * is used in the Main activity. If any icons are to be added, they must
+	 * be implemented in the getView method. This class is instantiated once in Main
+	 * and has no reason to be instantiated again. 
+	 * 
 	 * @author Joe Berria
-	 *
 	 */
     public class TableRow extends ArrayAdapter<String> {
     	private final int KB = 1024;
     	private final int MG = KB * KB;
     	private final int GB = MG * KB;
     	private String display_size;
-    	
-    	/**
-    	 * 
-    	 */
+
     	public TableRow() {
     		super(context, R.layout.tablerow, data_source);
+    	}
+    	
+    	public String getFilePermissions(File file) {
+    		String per = "-";
+    		
+    		if(file.isDirectory())
+    			per += "d";
+    		if(file.canRead())
+    			per += "r";
+    		if(file.canWrite())
+    			per += "w";
+    		
+    		return per;
     	}
     	
     	@Override
@@ -313,6 +396,9 @@ public class EventHandler implements OnClickListener {
     		TextView bottom = (TextView)view.findViewById(R.id.bottom_view);
     		ImageView icon = (ImageView)view.findViewById(R.id.row_image);
     		
+    		top.setTextColor(color);
+    		bottom.setTextColor(color);
+    		
     		String temp = file_mg.getCurrentDir();
     		file = new File(temp + "/" + data_source.get(position));
     		
@@ -320,7 +406,7 @@ public class EventHandler implements OnClickListener {
     			String ext = file.toString();
     			String sub_ext = ext.substring(ext.lastIndexOf(".") + 1);
     			
-    			/*This series of if-else if statements will determine which icon is displayed*/
+    			/*This series of if, else if statements will determine which icon is displayed*/
     			if (sub_ext.equalsIgnoreCase("pdf")) 
     				icon.setImageResource(R.drawable.pdf);
     			
@@ -381,11 +467,13 @@ public class EventHandler implements OnClickListener {
 				display_size = String.format("%.2f Kb ", (double)size/ KB);
 			else
 				display_size = String.format("%.2f bytes ", (double)size);
+    		 
+    		String permission = getFilePermissions(file);
     		
     		if(file.isHidden())
-    			bottom.setText("(hidden)  " + display_size);
+    			bottom.setText("(hidden)  " + display_size +" | "+ permission);
     		else
-    			bottom.setText(display_size);
+    			bottom.setText(display_size +" | "+ permission);
     		
     		top.setText(file.getName());
     		return view;
@@ -393,9 +481,16 @@ public class EventHandler implements OnClickListener {
     }
     
     /**
+     * A private inner class of EventHandler used to perform time extensive 
+     * operations. So the user does not think the the application has hung, 
+     * operations such as copy/past, search, unzip and zip will all be performed 
+     * in the background. This class extends AsyncTask in order to give the user
+     * a progress dialog to show that the app is working properly.
+     * 
+     * (note): this class will eventually be changed from using AsyncTask to using
+     * Handlers and messages to perform background operations. 
      * 
      * @author Joe Berria
-     *
      */
     private class BackgroundSearch extends AsyncTask<String, Void, ArrayList<String>> {
     	private String file_name;
@@ -403,65 +498,68 @@ public class EventHandler implements OnClickListener {
     	private int type;
     	private int copy_rtn;
     	
-    	/**
-    	 * 
-    	 * @param type
-    	 */
     	private BackgroundSearch(int type) {
     		this.type = type;
     	}
     	
+    	/**
+    	 * This is done on the EDT thread. this is called before 
+    	 * doInBackground is called
+    	 */
     	@Override
     	protected void onPreExecute() {
     		
     		switch(type) {
-    			case 0:	/* SEARCH */
+    			case SEARCH_TYPE:
     				pr_dialog = ProgressDialog.show(context, "Searching", "Searching current file system...",
     												true, true);
     				break;
     				
-    			case 1:	/* COPY */
+    			case COPY_TYPE:
     				pr_dialog = ProgressDialog.show(context, "Copying", "Copying file...", true, false);
     				break;
     				
-    			case 2:	/* UNZIP */
+    			case UNZIP_TYPE:
     				pr_dialog = ProgressDialog.show(context, "Unzipping", "Unpacking zip file please wait...",
     												true, false);
     				break;
     				
-    			case 3: /* UNZIPTO */
+    			case UNZIPTO_TYPE:
     				pr_dialog = ProgressDialog.show(context, "Unzipping", "Unpacking zip file please wait...",
     												true, false);
     				break;
     			
-    			case 4: /* ZIP */
+    			case ZIP_TYPE:
     				pr_dialog = ProgressDialog.show(context, "Zipping", "Zipping folder...", true, false);
     				break;
     		}
     	}
 
+    	/**
+    	 * background thread here
+    	 */
     	@Override
 		protected ArrayList<String> doInBackground(String... params) {
 			
 			switch(type) {
-				case 0:
+				case SEARCH_TYPE:
 					file_name = params[0];
 					ArrayList<String> found = file_mg.searchInDirectory(file_mg.getCurrentDir(), file_name);
 					return found;
 					
-				case 1:
+				case COPY_TYPE:
 					copy_rtn = file_mg.copyToDirectory(params[0], params[1]);
 					return null;
 					
-				case 2:
+				case UNZIP_TYPE:
 					file_mg.extractZipFiles(params[0], params[1]);
 					return null;
 					
-				case 3:
+				case UNZIPTO_TYPE:
 					file_mg.extractZipFilesFromDir(params[0], params[1], params[2]);
 					return null;
 					
-				case 4:
+				case ZIP_TYPE:
 					file_mg.createZipFile(params[0]);
 					return null;
 			}
@@ -469,13 +567,17 @@ public class EventHandler implements OnClickListener {
 			return null;
 		}
 		
+    	/**
+    	 * This is called when the background thread is finished. Like onPreExecute, anything
+    	 * here will be done on the EDT thread. 
+    	 */
     	@Override
 		protected void onPostExecute(final ArrayList<String> file) {			
 			final CharSequence[] names;
 			int len = file != null ? file.size() : 0;
 			
 			switch(type) {
-				case 0:	/* SEARCH */					
+				case SEARCH_TYPE:				
 					if(len == 0) {
 						Toast.makeText(context, "Couldn't find " + file_name, Toast.LENGTH_SHORT).show();
 					
@@ -504,7 +606,7 @@ public class EventHandler implements OnClickListener {
 					pr_dialog.dismiss();
 					break;
 					
-				case 1: /* COPY */
+				case COPY_TYPE:
 					if(copy_rtn == 0)
 						Toast.makeText(context, "File successfully copied and pasted", Toast.LENGTH_SHORT).show();
 					else
@@ -513,17 +615,17 @@ public class EventHandler implements OnClickListener {
 					pr_dialog.dismiss();
 					break;
 					
-				case 2:	/* UNZIP */
+				case UNZIP_TYPE:
 					updateDirectory(file_mg.getNextDir(file_mg.getCurrentDir(), true));
 					pr_dialog.dismiss();
 					break;
 					
-				case 3: /* UNZIPTO */
+				case UNZIPTO_TYPE:
 					updateDirectory(file_mg.getNextDir(file_mg.getCurrentDir(), true));
 					pr_dialog.dismiss();
 					break;
 					
-				case 4: /* ZIP */
+				case ZIP_TYPE:
 					updateDirectory(file_mg.getNextDir(file_mg.getCurrentDir(), true));
 					pr_dialog.dismiss();
 					break;
