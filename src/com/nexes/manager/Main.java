@@ -19,11 +19,13 @@
 package com.nexes.manager;
 
 import java.io.File;
+
 import android.app.Dialog;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -42,14 +44,33 @@ import android.widget.ImageView;
 import android.widget.ImageButton;
 import android.widget.Button;
 import android.widget.Toast;
-import android.util.Log;
+//import android.util.Log;
 
 /**
+ * This is the main activity. The activity that is presented to the user
+ * as the application launches. This class is, and expected not to be, instantiated.
+ * <br>
+ * <p>
+ * This class handles creating the buttons and
+ * text views. This class relies on the class EventHandler to handle all button
+ * press logic and to control the data displayed on its ListView. This class
+ * also relies on the FileManager class to handle all file operations such as
+ * copy/paste zip/unzip etc etc. However most interaction with the FileManager class
+ * is done via the EventHandler class. Also the SettingsMangager class to load
+ * and save user settings. 
+ * <br>
+ * <p>
+ * The design objective with this class is to control only the look of the
+ * GUI (option menu, context menu, ListView, buttons and so on) and rely on other
+ * supporting classes to do the heavy lifting. 
  *
  * @author Joe Berria
  *
  */
-public class Main extends ListActivity {
+public final class Main extends ListActivity {
+	public static final String PREFS_NAME = "ManagerPrefsFile";	//user preference file name
+	public static final String PREFS_HIDDEN = "hidden";
+	public static final String PREFS_COLOR = "color";
 	
 	private static final int MENU_MKDIR =   0x00;			//option menu id
 	private static final int MENU_SETTING = 0x01;			//option menu id
@@ -72,14 +93,11 @@ public class Main extends ListActivity {
 	
 	private static final int SETTING_REQ = 	 0x10;			//request code for intent
 
-	/*
-	 * These three classes /must/ be instantiated in this order. 
-	 */
-	private final FileManager flmg = new FileManager();
-	private final SettingsManager settings = new SettingsManager(flmg);
-	private final EventHandler handler = new EventHandler(Main.this, flmg);
-	
+	private FileManager flmg;
+	private EventHandler handler;
 	private EventHandler.TableRow table;
+	
+	private SharedPreferences settings;
 	private boolean holding_file = false;
 	private boolean holding_zip = false;
 	private boolean use_back_key = true;
@@ -94,6 +112,16 @@ public class Main extends ListActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
         
+        /*read settings*/
+        settings = getSharedPreferences(PREFS_NAME, 0);
+        boolean hide = settings.getBoolean(PREFS_HIDDEN, false);
+        int color = settings.getInt(PREFS_COLOR, -1);
+        
+        flmg = new FileManager();
+        flmg.setShowHiddenFiles(hide);
+        
+        handler = new EventHandler(Main.this, flmg);
+        handler.setTextColor(color);
         table = handler.new TableRow();
         
         /*sets the ListAdapter for our ListActivity and
@@ -102,12 +130,14 @@ public class Main extends ListActivity {
         handler.setListAdapter(table);
         setListAdapter(table);
                
-        //register context menu for our list view
+        /* register context menu for our list view */
         registerForContextMenu(getListView());
         
         path_label = (TextView)findViewById(R.id.path_label);
         detail_label = (TextView)findViewById(R.id.detail_label);
         path_label.setText("path: /sdcard");
+        
+        handler.setUpdateLabel(path_label);
         
         ImageButton help_b = (ImageButton)findViewById(R.id.help_button);
         help_b.setOnClickListener(handler);
@@ -126,7 +156,10 @@ public class Main extends ListActivity {
     }
 
 	/**
-	 * 
+	 *  To add more functionality and let the user interact with more
+	 *  file types, this is the function to add the ability. 
+	 *  
+	 *  (note): this method can be done more efficiently 
 	 */
     @Override
     public void onListItemClick(ListView parent, View view, int position, long id) {
@@ -145,6 +178,10 @@ public class Main extends ListActivity {
     		if(file.canRead()) {
 	    		handler.updateDirectory(flmg.getNextDir(item, false));
 	    		path_label.setText(flmg.getCurrentDir());
+	    		
+	    		/*set back button switch to true (this will be better implemented later)*/
+	    		if(!use_back_key)
+	    			use_back_key = true;
     		}else
     			Toast.makeText(this, "Can't read folder due to permissions", Toast.LENGTH_SHORT).show();
     	}
@@ -183,7 +220,7 @@ public class Main extends ListActivity {
     		}
     	}
     	
-    	/*zip and gzip file selected*/
+    	/*zip and gzip file selected (gzip will be implemented soon)*/
     	else if(item_ext.equalsIgnoreCase(".zip")) { //|| item_ext.equalsIgnoreCase(".gzip")) {
     		
     		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -228,7 +265,6 @@ public class Main extends ListActivity {
     	else if(item_ext.equalsIgnoreCase(".apk")){
     		
     		if(file.exists()) {
-    			Log.e("permissions", file.canRead() +" "+ file.canWrite());
     			Intent apk_int = new Intent();
     			apk_int.setAction(android.content.Intent.ACTION_VIEW);
     			apk_int.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
@@ -251,11 +287,25 @@ public class Main extends ListActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	super.onActivityResult(requestCode, resultCode, data);
-    	String check;
+    	SharedPreferences.Editor editor = settings.edit();
+    	boolean check;
+    	int color;
     	
-    	if(requestCode == SETTING_REQ && resultCode == RESULT_CANCELED) {    		
-    		check = data.getStringExtra("HIDDEN");    		
-    		settings.writeSettings(check);
+    	/* resultCode must equal RESULT_CANCELED because the only way
+    	 * out of that activity is pressing the back button on the phone
+    	 * this publishes a canceled result code not an ok result code
+    	 */
+    	if(requestCode == SETTING_REQ && resultCode == RESULT_CANCELED) {
+    		//save the information we get from settings activity
+    		check = data.getBooleanExtra("HIDDEN", false);
+    		color = data.getIntExtra("COLOR", -1);
+    		
+    		editor.putBoolean(PREFS_HIDDEN, check);
+    		editor.putInt(PREFS_COLOR, color);
+    		editor.commit();
+    		
+    		flmg.setShowHiddenFiles(check);
+    		handler.setTextColor(color);
     		handler.updateDirectory(flmg.getNextDir(flmg.getCurrentDir(), true));
     	}
     }
@@ -265,6 +315,8 @@ public class Main extends ListActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
     	menu.add(0, MENU_MKDIR, 0, "New Directory").setIcon(R.drawable.newfolder);
     	menu.add(0, MENU_SEARCH, 0, "Search").setIcon(R.drawable.search);
+    	
+    		/* free space will be implemented at a later time */
 //    	menu.add(0, MENU_SPACE, 0, "Free space").setIcon(R.drawable.space);
     	menu.add(0, MENU_SETTING, 0, "Settings").setIcon(R.drawable.setting);
     	menu.add(0, MENU_SORT, 0, "Filter").setIcon(R.drawable.filter);
@@ -289,7 +341,8 @@ public class Main extends ListActivity {
     			
     		case MENU_SETTING:
     			Intent settings_int = new Intent(this, Settings.class);
-    			settings_int.putExtra("HIDDEN", settings.readSettings());
+    			settings_int.putExtra("HIDDEN", settings.getBoolean("hidden", false));
+    			settings_int.putExtra("COLOR", settings.getInt(PREFS_COLOR, -1));
     			
     			startActivityForResult(settings_int, SETTING_REQ);
     			return true;
@@ -559,6 +612,12 @@ public class Main extends ListActivity {
     	return dialog;
     }
     
+    /*
+     * (non-Javadoc)
+     * This will check if the user is at root dir. If so, if they press back
+     * again, it will close the app. 
+     * @see android.app.Activity#onKeyDown(int, android.view.KeyEvent)
+     */
     @Override
    public boolean onKeyDown(int keycode, KeyEvent event) {
     	String current = flmg.getCurrentDir();
