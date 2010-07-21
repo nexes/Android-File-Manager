@@ -33,11 +33,9 @@ public class DirectoryInfo extends Activity {
 	private final int KB = 1024;
 	private final int MG = KB * KB;
 	private final int GB = MG * KB;
-	private FileManager flmg = new FileManager();
 	private String path_name;
 	private TextView name_label, path_label, dir_label,
 					 file_label, time_label, total_label;
-//					 used_label, free_label;
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -50,9 +48,9 @@ public class DirectoryInfo extends Activity {
 		file_label = (TextView)findViewById(R.id.files_label);
 		time_label = (TextView)findViewById(R.id.time_stamp);
 		total_label = (TextView)findViewById(R.id.total_size);
-//		used_label = (TextView)findViewById(R.id.used_space);
-//		free_label = (TextView)findViewById(R.id.free_space);
 		
+		/*make zip button visible and setup onclick logic to have
+		  zip button */
 		Button zip = (Button)findViewById(R.id.zip_button);
 		zip.setVisibility(Button.GONE);
 		
@@ -75,7 +73,7 @@ public class DirectoryInfo extends Activity {
 		private int dir_count = 0;
 		
 		protected void onPreExecute(){
-			dialog = ProgressDialog.show(DirectoryInfo.this, "", "Calculating information...", true);
+			dialog = ProgressDialog.show(DirectoryInfo.this, "", "Calculating information...", true, true);
 		}
 		
 		protected Double doInBackground(String... vals) {
@@ -125,7 +123,6 @@ public class DirectoryInfo extends Activity {
 		
 		@Override
 		public void onClick(View v) {
-			
 			if(v.getId() == R.id.back_button)
 				finish();
 		}

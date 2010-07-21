@@ -36,7 +36,6 @@
     			android:padding="6dp"
     			android:layout_marginRight="2dp"
     			android:layout_marginTop="6dp"
-    			android:hapticFeedbackEnabled="true"
     			android:src="@drawable/back"
     			android:id="@+id/back_button"/>
     		<ImageButton
@@ -45,7 +44,6 @@
     			android:padding="6dp"
     			android:layout_marginRight="2dp"
     			android:layout_marginTop="6dp"
-    			android:hapticFeedbackEnabled="true"
     			android:src="@drawable/home"
     			android:id="@+id/home_button"/>
     		<ImageButton
@@ -54,7 +52,6 @@
     			android:padding="6dp"
     			android:layout_marginRight="2dp"
     			android:layout_marginTop="6dp"
-    			android:hapticFeedbackEnabled="true"
     			android:src="@drawable/toolbox"
     			android:id="@+id/manage_button"/>
     		<ImageButton
@@ -63,7 +60,6 @@
     			android:padding="6dp"
     			android:layout_marginRight="2dp"
     			android:layout_marginTop="6dp"
-    			android:hapticFeedbackEnabled="true"
     			android:src="@drawable/info"
     			android:id="@+id/info_button"/>
     		<ImageButton
@@ -72,7 +68,6 @@
     			android:padding="6dp"
     			android:layout_marginRight="2dp"
     			android:layout_marginTop="6dp"
-    			android:hapticFeedbackEnabled="true"
     			android:src="@drawable/help"
     			android:id="@+id/help_button"/>
     	</LinearLayout>

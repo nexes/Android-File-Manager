@@ -55,18 +55,18 @@ public class WirelessManager extends Activity {
 		data_labels = new TextView[6];
 		
 		int[] left_views = {R.id.first_title, R.id.second_title, R.id.third_title,
-					   R.id.fourth_title, R.id.fifth_title, R.id.sixth_title};
+					   R.id.fourth_title, R.id.fifth_title};
 		
 		/*R.layout.info_layout is the same layout used for directory info.
 		 *Re-using the layout for this activity, so id tag names may not make sense,
 		 *but are in the correct order.
 		 */
 		int[] right_views = {R.id.dirs_label, R.id.files_label, R.id.time_stamp,
-							 R.id.total_size, R.id.free_space, R.id.used_space};
+							 R.id.total_size, R.id.free_space};
 		String[] labels = {"Signal strength", "WIFI State", "ip address",
 						  "mac address", "SSID", "link speed"};
 		
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 5; i++) {
 			titles[i] = (TextView)findViewById(left_views[i]);
 			titles[i].setText(labels[i]);
 			

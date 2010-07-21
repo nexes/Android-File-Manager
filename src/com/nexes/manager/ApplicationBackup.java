@@ -48,6 +48,20 @@ import android.widget.ImageView;
 import android.widget.Toast;
 //import android.util.Log;
 
+/**
+ * This class is used to display an activity to the user so they can
+ * view the third party applications on their phone and have a button
+ * that gives them the ability to backup said applications to the SDCard
+ * <br>
+ * <p>
+ * The location that the backup will be placed is at 
+ * <br>/sdcard/open manager/AppBackup/
+ * <br>
+ * note: that /sdcard/open manager/ should already exists. This is check at start
+ * up from the SettingsManager class.
+ * 
+ * @author Joe Berria <nexesdevelopment@gmail.com>
+ */
 public class ApplicationBackup extends ListActivity {
 	private static final String BACKUP_LOC = "/sdcard/open manager/AppBackup/";
 	private static final int SET_PROGRESS = 0x00;
@@ -59,6 +73,10 @@ public class ApplicationBackup extends ListActivity {
 	private PackageManager pk;
 	private ProgressDialog dialog;
 	
+	/*
+	 * Our handler object that will update the GUI from 
+	 * our background thread. 
+	 */
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
 			
@@ -115,7 +133,12 @@ public class ApplicationBackup extends ListActivity {
 		appLabel.setText("You have " +appList.size() + " downloaded apps");
 	}
 
-	
+
+	/*
+	 * This private inner class will perform the backup of applications
+	 * on a background thread, while updating the user via a message being
+	 * sent to our handler object.
+	 */
 	private class BackgroundWork implements Runnable {
 		File dir = new File(BACKUP_LOC);
 		BufferedInputStream buff_in;
@@ -126,8 +149,18 @@ public class ApplicationBackup extends ListActivity {
 		public BackgroundWork() {
 			data =  new byte[buffer];
 			
-			if(!dir.exists())
+			/*create dir if needed*/
+			File d = new File("/sdcard/open manager/");
+			if(!d.exists()) {
+				d.mkdir();
+				
+				//then create this directory
 				dir.mkdir();
+				
+			} else {
+				if(!dir.exists())
+					dir.mkdir();
+			}
 		}
 
 		public void run() {
