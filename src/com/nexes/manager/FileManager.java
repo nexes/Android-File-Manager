@@ -1,6 +1,6 @@
 /*
     Open Manager, an open source file manager for the Android system
-    Copyright (C) 2009, 2010  Joe Berria
+    Copyright (C) 2009, 2010  Joe Berria <nexesdevelopment@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -82,12 +82,8 @@ public class FileManager {
 	 * 
 	 * @param choice
 	 */
-	public void setShowHiddenFiles(int choice) {
-		
-		if(choice == 1)
-			show_hidden = true;
-		else
-			show_hidden = false;
+	public void setShowHiddenFiles(boolean choice) {
+		show_hidden = choice;
 	}
 	
 	/**
@@ -460,7 +456,7 @@ public class FileManager {
 		return dir_size;
 	}
 	
-	/**
+	/*
 	 * 
 	 * @return
 	 */
@@ -491,7 +487,7 @@ public class FileManager {
 		return dir_content;
 	}
 	
-	/**
+	/*
 	 * 
 	 * @param file
 	 * @param zout
@@ -522,7 +518,7 @@ public class FileManager {
 	
 	}
 	
-	/**
+	/*
 	 * 
 	 * @param path
 	 */
@@ -534,12 +530,12 @@ public class FileManager {
 			if(list[i].isFile())
 				dir_size += list[i].length();
 			
-			else if(list[i].isDirectory())
+			else if(list[i].isDirectory() && list[i].canRead())
 				get_dir_size(list[i]);
 		}
 	}
 
-	/**
+	/*
 	 * 
 	 * @param dir
 	 * @param fileName
