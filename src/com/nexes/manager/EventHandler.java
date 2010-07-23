@@ -19,6 +19,9 @@
 package com.nexes.manager;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.ArrayList;
@@ -30,6 +33,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.View.OnClickListener;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -407,52 +412,65 @@ public class EventHandler implements OnClickListener {
     			String sub_ext = ext.substring(ext.lastIndexOf(".") + 1);
     			
     			/*This series of if, else if statements will determine which icon is displayed*/
-    			if (sub_ext.equalsIgnoreCase("pdf")) 
+    			if (sub_ext.equalsIgnoreCase("pdf")) {
     				icon.setImageResource(R.drawable.pdf);
     			
-    			else if (sub_ext.equalsIgnoreCase("mp3") || sub_ext.equalsIgnoreCase("wma") || 
-    					 sub_ext.equalsIgnoreCase("m4a") || sub_ext.equalsIgnoreCase("m4p"))
+    			} else if (sub_ext.equalsIgnoreCase("mp3") || sub_ext.equalsIgnoreCase("wma") || 
+    					 sub_ext.equalsIgnoreCase("m4a") || sub_ext.equalsIgnoreCase("m4p")) {
     				icon.setImageResource(R.drawable.music);
     			
-    			else if (sub_ext.equalsIgnoreCase("png") || sub_ext.equalsIgnoreCase("jpg") ||
+    			} else if (sub_ext.equalsIgnoreCase("png") || sub_ext.equalsIgnoreCase("jpg") ||
     					 sub_ext.equalsIgnoreCase("jpeg") || sub_ext.equalsIgnoreCase("gif")||
-    					 sub_ext.equalsIgnoreCase("tiff"))
-    				icon.setImageResource(R.drawable.image);
+    					 sub_ext.equalsIgnoreCase("tiff")) {
+    				
+    				/*This is just to test it out, will correctly implement later*/
+    				BitmapFactory.Options options = new BitmapFactory.Options();
+    				options.inSampleSize = 64;
+    				options.inTempStorage = new byte[1024 * 16]; //16k buffer
+    				try {
+						BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
+						Bitmap thumb = BitmapFactory.decodeStream(is, null, options);
+	    				icon.setImageBitmap(thumb);
+	    				
+					} catch (FileNotFoundException e) {
+						icon.setImageResource(R.drawable.image);
+					}
     			
-    			else if (sub_ext.equalsIgnoreCase("zip") || sub_ext.equalsIgnoreCase("gzip") ||
-    					 sub_ext.equalsIgnoreCase("gz"))
+    			} else if (sub_ext.equalsIgnoreCase("zip") || sub_ext.equalsIgnoreCase("gzip") ||
+    					 sub_ext.equalsIgnoreCase("gz")) {
     				icon.setImageResource(R.drawable.zip);
     			
-    			else if(sub_ext.equalsIgnoreCase("m4v") || sub_ext.equalsIgnoreCase("wmv") ||
-    					sub_ext.equalsIgnoreCase("3gp") || sub_ext.equalsIgnoreCase("mp4"))
+    			} else if(sub_ext.equalsIgnoreCase("m4v") || sub_ext.equalsIgnoreCase("wmv") ||
+    					sub_ext.equalsIgnoreCase("3gp") || sub_ext.equalsIgnoreCase("mp4")) {
     				icon.setImageResource(R.drawable.movies);
     			
-    			else if(sub_ext.equalsIgnoreCase("doc") || sub_ext.equalsIgnoreCase("docx"))
+    			} else if(sub_ext.equalsIgnoreCase("doc") || sub_ext.equalsIgnoreCase("docx")) {
     				icon.setImageResource(R.drawable.word);
     			
-    			else if(sub_ext.equalsIgnoreCase("xls") || sub_ext.equalsIgnoreCase("xlsx"))
+    			} else if(sub_ext.equalsIgnoreCase("xls") || sub_ext.equalsIgnoreCase("xlsx")) {
     				icon.setImageResource(R.drawable.excel);
     			
-    			else if(sub_ext.equalsIgnoreCase("ppt") || sub_ext.equalsIgnoreCase("pptx"))
+    			} else if(sub_ext.equalsIgnoreCase("ppt") || sub_ext.equalsIgnoreCase("pptx")) {
     				icon.setImageResource(R.drawable.ppt);
     			
-    			else if(sub_ext.equalsIgnoreCase("html"))
+    			} else if(sub_ext.equalsIgnoreCase("html")) {
     				icon.setImageResource(R.drawable.html32);
     			
-    			else if(sub_ext.equalsIgnoreCase("xml"))
+    			} else if(sub_ext.equalsIgnoreCase("xml")) {
     				icon.setImageResource(R.drawable.xml32);
     			
-    			else if(sub_ext.equalsIgnoreCase("conf"))
+    			} else if(sub_ext.equalsIgnoreCase("conf")) {
     				icon.setImageResource(R.drawable.config32);
     			
-    			else if(sub_ext.equalsIgnoreCase("apk"))
+    			} else if(sub_ext.equalsIgnoreCase("apk")) {
     				icon.setImageResource(R.drawable.appicon);
     			
-    			else if(sub_ext.equalsIgnoreCase("jar"))
+    			} else if(sub_ext.equalsIgnoreCase("jar")) {
     				icon.setImageResource(R.drawable.jar32);
     			
-    			else
+    			} else { 
     				icon.setImageResource(R.drawable.text);
+    			}
     			
     		} else if(file.isDirectory()) {
     				icon.setImageResource(R.drawable.folder);
