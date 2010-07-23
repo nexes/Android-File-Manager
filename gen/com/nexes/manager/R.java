@@ -62,7 +62,7 @@ public final class R {
         public static final int back_button=0x7f060017;
         public static final int backup_button=0x7f060004;
         public static final int backup_label=0x7f060003;
-        public static final int bottom_view=0x7f060029;
+        public static final int bottom_view=0x7f06002a;
         public static final int detail_label=0x7f060022;
         public static final int dirs_label=0x7f06000e;
         public static final int edit_view_label=0x7f060005;
@@ -91,13 +91,14 @@ public final class R {
         public static final int name_label=0x7f06000b;
         public static final int num_processes_label=0x7f060024;
         public static final int path_label=0x7f06000c;
-        public static final int row_image=0x7f060027;
+        public static final int row_image=0x7f060028;
         public static final int second_title=0x7f06000f;
         public static final int setting_color_button=0x7f060025;
         public static final int setting_hidden_box=0x7f060026;
+        public static final int setting_thumbnail_box=0x7f060027;
         public static final int third_title=0x7f060011;
         public static final int time_stamp=0x7f060012;
-        public static final int top_view=0x7f060028;
+        public static final int top_view=0x7f060029;
         public static final int total_size=0x7f060014;
         public static final int zip_button=0x7f060018;
     }

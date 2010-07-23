@@ -170,7 +170,9 @@ public class FileManager {
 			
 			for(int i = 0; i < len; i++)
 				copyToDirectory(old + "/" + files[i], dir);
-		}
+			
+		} else if(!temp_dir.canWrite())
+			return -1;
 		
 		return 0;
 	}
@@ -242,6 +244,10 @@ public class FileManager {
 		ZipEntry entry;
 		int len;
 
+		File check = new File(directory);
+		if(!check.canRead() || !check.canWrite())
+			return;
+		
 		_directory = directory + zip_file.substring(0, zip_file.lastIndexOf(".zip")) + "/";
 		
 		new File(_directory).mkdir();
@@ -286,6 +292,10 @@ public class FileManager {
 		String[] list = dir.list();
 		String name = path.substring(path.lastIndexOf("/"), path.length());
 		String _path;
+		
+		if(!dir.canRead() || !dir.canWrite())
+			return;
+		
 		int len = list.length;
 		
 		if(path.charAt(path.length() -1) != '/')

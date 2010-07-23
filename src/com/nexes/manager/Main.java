@@ -484,9 +484,15 @@ public final class Main extends ListActivity {
     				String current_dir = flmg.getCurrentDir() +"/" + selected_list_item + "/";
     				String old_dir = zipped_target.substring(0, zipped_target.lastIndexOf("/"));
     				String name = zipped_target.substring(zipped_target.lastIndexOf("/") + 1, zipped_target.length());
-
-    				handler.unZipFileToDir(name, current_dir, old_dir);				
-    				path_label.setText(current_dir);
+    				
+    				if(new File(zipped_target).canRead() && new File(current_dir).canWrite()) {
+	    				handler.unZipFileToDir(name, current_dir, old_dir);				
+	    				path_label.setText(current_dir);
+	    				
+    				} else {
+    					Toast.makeText(this, "You do not have permission to unzip " + name, 
+    							Toast.LENGTH_SHORT).show();
+    				}
     			}
     			
     			holding_zip = false;
