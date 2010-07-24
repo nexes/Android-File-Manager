@@ -525,7 +525,6 @@ public class FileManager {
 			for(int i = 0; i < len; i++)
 				zip_folder(new File(file.getPath() +"/"+ list[i]), zout);
 		}
-	
 	}
 	
 	/*
@@ -534,14 +533,18 @@ public class FileManager {
 	 */
 	private void get_dir_size(File path) {
 		File[] list = path.listFiles();
-		int len = list.length;
+		int len;
 		
-		for (int i = 0; i < len; i++) {
-			if(list[i].isFile())
-				dir_size += list[i].length();
+		if(list != null) {
+			len = list.length;
 			
-			else if(list[i].isDirectory() && list[i].canRead())
-				get_dir_size(list[i]);
+			for (int i = 0; i < len; i++) {
+				if(list[i].isFile())
+					dir_size += list[i].length();
+				
+				else if(list[i].isDirectory() && list[i].canRead())
+					get_dir_size(list[i]);
+			}
 		}
 	}
 
