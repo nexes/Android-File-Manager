@@ -19,9 +19,9 @@
 package com.nexes.manager;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
+//import java.io.FileInputStream;
+//import java.io.BufferedInputStream;
+//import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-//import android.util.Log;
+import android.util.Log;
 
 /**
  * This class sits between the Main activity and the FileManager class. 
@@ -369,7 +369,7 @@ public class EventHandler implements OnClickListener {
     	private final int MG = KB * KB;
     	private final int GB = MG * KB;
     	private String display_size;
-
+    	
     	public TableRow() {
     		super(context, R.layout.tablerow, data_source);
     	}
@@ -387,10 +387,24 @@ public class EventHandler implements OnClickListener {
     		return per;
     	}
     	
+    	/*
+    	 * (non-Javadoc)
+    	 * 
+    	 * background work
+    	 * @see java.lang.Runnable#run()
+    	 */
+    	
     	@Override
     	public View getView(int position, View convertView, ViewGroup parent) {
+    		int num_items = 0;
     		File file;
     		View view = convertView;
+    		String temp = file_mg.getCurrentDir();
+    		file = new File(temp + "/" + data_source.get(position));
+    		String[] list = file.list();
+    		
+    		if(list != null)
+    			num_items = list.length;
    
     		if(view == null) {
     			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -404,9 +418,6 @@ public class EventHandler implements OnClickListener {
     		top.setTextColor(color);
     		bottom.setTextColor(color);
     		
-    		String temp = file_mg.getCurrentDir();
-    		file = new File(temp + "/" + data_source.get(position));
-    		
     		if(file.isFile()) {
     			String ext = file.toString();
     			String sub_ext = ext.substring(ext.lastIndexOf(".") + 1);
@@ -417,31 +428,21 @@ public class EventHandler implements OnClickListener {
     			
     			} else if (sub_ext.equalsIgnoreCase("mp3") || sub_ext.equalsIgnoreCase("wma") || 
     					 sub_ext.equalsIgnoreCase("m4a") || sub_ext.equalsIgnoreCase("m4p")) {
+    				
     				icon.setImageResource(R.drawable.music);
     			
     			} else if (sub_ext.equalsIgnoreCase("png") || sub_ext.equalsIgnoreCase("jpg") ||
-    					 sub_ext.equalsIgnoreCase("jpeg") || sub_ext.equalsIgnoreCase("gif")||
-    					 sub_ext.equalsIgnoreCase("tiff")) {
-    				
-    				/*This is just to test it out, will correctly implement later*/
-    				BitmapFactory.Options options = new BitmapFactory.Options();
-    				options.inSampleSize = 64;
-    				options.inTempStorage = new byte[1024 * 16]; //16k buffer
-    				try {
-						BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
-						Bitmap thumb = BitmapFactory.decodeStream(is, null, options);
-	    				icon.setImageBitmap(thumb);
-	    				
-					} catch (FileNotFoundException e) {
-						icon.setImageResource(R.drawable.image);
-					}
-    			
+    					   sub_ext.equalsIgnoreCase("jpeg") || sub_ext.equalsIgnoreCase("gif")||
+    					   sub_ext.equalsIgnoreCase("tiff")) {
+   
+    				icon.setImageResource(R.drawable.image);
+ 			
     			} else if (sub_ext.equalsIgnoreCase("zip") || sub_ext.equalsIgnoreCase("gzip") ||
-    					 sub_ext.equalsIgnoreCase("gz")) {
+    					   sub_ext.equalsIgnoreCase("gz")) {
     				icon.setImageResource(R.drawable.zip);
     			
     			} else if(sub_ext.equalsIgnoreCase("m4v") || sub_ext.equalsIgnoreCase("wmv") ||
-    					sub_ext.equalsIgnoreCase("3gp") || sub_ext.equalsIgnoreCase("mp4")) {
+    					  sub_ext.equalsIgnoreCase("3gp") || sub_ext.equalsIgnoreCase("mp4")) {
     				icon.setImageResource(R.drawable.movies);
     			
     			} else if(sub_ext.equalsIgnoreCase("doc") || sub_ext.equalsIgnoreCase("docx")) {
@@ -476,24 +477,33 @@ public class EventHandler implements OnClickListener {
     				icon.setImageResource(R.drawable.folder);
     		}
     		
-    		double size = file.length();
-    		if (size > GB)
-				display_size = String.format("%.2f Gb ", (double)size / GB);
-			else if (size < GB && size > MG)
-				display_size = String.format("%.2f Mb ", (double)size / MG);
-			else if (size < MG && size > KB)
-				display_size = String.format("%.2f Kb ", (double)size/ KB);
-			else
-				display_size = String.format("%.2f bytes ", (double)size);
-    		 
     		String permission = getFilePermissions(file);
     		
-    		if(file.isHidden())
-    			bottom.setText("(hidden)  " + display_size +" | "+ permission);
-    		else
-    			bottom.setText(display_size +" | "+ permission);
+    		if(file.isFile()) {
+    			double size = file.length();
+        		if (size > GB)
+    				display_size = String.format("%.2f Gb ", (double)size / GB);
+    			else if (size < GB && size > MG)
+    				display_size = String.format("%.2f Mb ", (double)size / MG);
+    			else if (size < MG && size > KB)
+    				display_size = String.format("%.2f Kb ", (double)size/ KB);
+    			else
+    				display_size = String.format("%.2f bytes ", (double)size);
+        		
+        		if(file.isHidden())
+        			bottom.setText("(hidden) | " + display_size +" | "+ permission);
+        		else
+        			bottom.setText(display_size +" | "+ permission);
+        		
+    		} else {
+    			if(file.isHidden())
+    				bottom.setText("(hidden) | " + num_items + " items | " + permission);
+    			else
+    				bottom.setText(num_items + " items | " + permission);
+    		}
     		
     		top.setText(file.getName());
+    		
     		return view;
     	}
     }
