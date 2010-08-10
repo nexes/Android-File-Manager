@@ -19,13 +19,11 @@
 package com.nexes.manager;
 
 import java.io.File;
-//import java.io.FileInputStream;
-//import java.io.BufferedInputStream;
-//import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.ArrayList;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -33,8 +31,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.view.View.OnClickListener;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,7 +39,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.util.Log;
+//import android.util.Log;
 
 /**
  * This class sits between the Main activity and the FileManager class. 
@@ -68,19 +64,29 @@ public class EventHandler implements OnClickListener {
 	 * Unique types to control which file operation gets
 	 * performed in the background
 	 */
-	private static final int SEARCH_TYPE =	0;
-	private static final int COPY_TYPE =	1;
-	private static final int UNZIP_TYPE =	2;
-	private static final int UNZIPTO_TYPE =	3;
-	private static final int ZIP_TYPE =		4;
+	private static final int SEARCH_TYPE =	0x00;
+	private static final int COPY_TYPE =	0x01;
+	private static final int UNZIP_TYPE =	0x02;
+	private static final int UNZIPTO_TYPE =	0x03;
+	private static final int ZIP_TYPE =		0x04;
+	private static final int DELETE_TYPE = 	0x05;
+	
+	private static final int MANAGE_DIALOG = 0x06;
+	private static final int MULTISELECT_DIAlOG = 0x07;
 
 	private final Context context;
 	private final FileManager file_mg;
+	private boolean multi_select_flag = false;
 	private int color = Color.WHITE;
 	private TableRow delegate;
+	
+	//the data used to feed info into the array adapter
 	private ArrayList<String> data_source;
 	
+	//ArrayList used to hold data when multi-select is on
+	private ArrayList<String> multiselect_data;
 	private TextView path_label;
+	private TextView info_label;
 	
 	/*
 	 * The comparator object that is passed into Arrays.sort method
@@ -146,10 +152,35 @@ public class EventHandler implements OnClickListener {
 	 * the TextView that should be updated as the directory changes
 	 * so the user knows which folder they are in.
 	 * 
-	 * @param label	The label to update as the directory changes
+	 * @param path	The label to update as the directory changes
+	 * @param label	the label to update information
 	 */
-	public void setUpdateLabel(TextView path) {
+	public void setUpdateLabel(TextView path, TextView label) {
 		path_label = path;
+		info_label = label;
+	}
+	
+	/**
+	 * A getter method to indicate whether the user wants to select 
+	 * multiple files or folders at a time.
+	 * <br><br>
+	 * false by default
+	 * 
+	 * @return	true if the user has turned on multi selection
+	 */
+	public boolean isMultiSelected() {
+		return multi_select_flag;
+	}
+	
+	/**
+	 * 
+	 * @return	returns true if the user is holding multiple objects (multi-select)
+	 */
+	public boolean hasMultiSelectData() {
+		if(multiselect_data != null && multiselect_data.size() > 0)
+			return true;
+		else
+			return false;
 	}
 	
 	/**
@@ -163,13 +194,44 @@ public class EventHandler implements OnClickListener {
 	}
 	
 	/**
+	 * Will delete the file name that is passed on a background
+	 * thread.
+	 * 
+	 * @param name
+	 */
+	public void deleteFile(String name) {
+		new BackgroundSearch(DELETE_TYPE).execute(name);
+	}
+	
+	/**
 	 * Will copy a file or folder to another location.
 	 * 
 	 * @param oldLocation	from location
 	 * @param newLocation	to location
 	 */
 	public void copyFile(String oldLocation, String newLocation) {
-		new BackgroundSearch(COPY_TYPE).execute(oldLocation, newLocation);
+		String[] data = {oldLocation, newLocation};
+		
+		new BackgroundSearch(COPY_TYPE).execute(data);
+	}
+	
+	/**
+	 * 
+	 * @param newLocation
+	 */
+	public void copyFileMultiSelect(String newLocation) {
+		String[] data;
+		int index = 1;
+		
+		if (multiselect_data.size() > 0) {
+			data = new String[multiselect_data.size() + 1];
+			data[0] = newLocation;
+			
+			for(String s : multiselect_data)
+				data[index++] = s;
+			
+			new BackgroundSearch(COPY_TYPE).execute(data);
+		}
 	}
 	
 	/**
@@ -209,28 +271,70 @@ public class EventHandler implements OnClickListener {
 	 */
 	@Override
 	public void onClick(View v) {
-		
-		if(v.getId() == R.id.back_button) {
-			if (file_mg.getCurrentDir() != "/") {				
-				updateDirectory(file_mg.getPreviousDir());
+
+		switch(v.getId()) {
+			case R.id.back_button:
+				if (file_mg.getCurrentDir() != "/") {
+					if(multi_select_flag) {
+						multi_select_flag = false;
+						delegate.clearMultiPosition();
+						multiselect_data.clear();
+						Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
+					}
+					updateDirectory(file_mg.getPreviousDir());
+					path_label.setText(file_mg.getCurrentDir());
+				}
+				break;
+			
+			case R.id.home_button:
+				if(multi_select_flag) {
+					multi_select_flag = false;
+					delegate.clearMultiPosition();
+					multiselect_data.clear();
+					Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
+				}
+				updateDirectory(file_mg.getHomeDir());
 				path_label.setText(file_mg.getCurrentDir());
-			}
-			
-		} else if(v.getId() == R.id.home_button) {
-			updateDirectory(file_mg.getHomeDir());
-			path_label.setText(file_mg.getCurrentDir());
+				break;
 				
-		} else if(v.getId() == R.id.info_button) {
-			Intent i = new Intent(context, DirectoryInfo.class);
-			i.putExtra("PATH_NAME", file_mg.getCurrentDir());
-			context.startActivity(i);
+			case R.id.info_button:
+				Intent info = new Intent(context, DirectoryInfo.class);
+				info.putExtra("PATH_NAME", file_mg.getCurrentDir());
+				context.startActivity(info);
+				break;
 				
-		} else if(v.getId() == R.id.help_button) {
-			Intent i = new Intent(context, HelpManager.class);
-			context.startActivity(i);
-			
-		} else if(v.getId() == R.id.manage_button)
-			display_dialog();
+			case R.id.help_button:
+				Intent help = new Intent(context, HelpManager.class);
+				context.startActivity(help);
+				break;
+				
+			case R.id.manage_button:
+				display_dialog(MANAGE_DIALOG);
+				break;
+				
+			case R.id.multiselect_button:
+				if(multi_select_flag) {
+					multi_select_flag = false;
+					Toast.makeText(context, "Multi-Select is off", Toast.LENGTH_SHORT).show();
+					delegate.clearMultiPosition();
+					multiselect_data.clear();
+					
+				} else {
+					multi_select_flag = true;
+					Toast.makeText(context, "Multi-Select is on", Toast.LENGTH_SHORT).show();
+				}
+				break;
+				
+			case R.id.multioperation_button:
+				if(multi_select_flag) {
+					display_dialog(MULTISELECT_DIAlOG);
+					
+				} else {
+					Toast.makeText(context, "Turn on multi-select to use these operations", 
+									Toast.LENGTH_SHORT).show();
+				}
+				break;
+		}
 	}
 	
 	public void setTextColor(int color) {
@@ -319,43 +423,115 @@ public class EventHandler implements OnClickListener {
 	 * seem to fit with the overall idea of the app. However to display it, just uncomment
 	 * the below code and the code in the AndroidManifest.xml file. 
 	 */
-	private void display_dialog() {
+	private void display_dialog(int type) {
 		AlertDialog.Builder builder;
     	AlertDialog dialog;
     	
-    	//un-comment Wifi Info here and in the manafest file 
-    	//to display Wifi info. Also uncomment and change case number below
-    	CharSequence[] options = {"Process Info", /*"Wifi Info",*/ "Application backup"};
-    	
-    	builder = new AlertDialog.Builder(context);
-    	builder.setTitle("ToolBox");
-    	builder.setItems(options, new DialogInterface.OnClickListener() {
-    		
-			public void onClick(DialogInterface dialog, int index) {
-				Intent i;
-				
-				switch(index) {
-					case 0:
-						i = new Intent(context, ProcessManager.class);
-						context.startActivity(i);
-						break;
-/*
-					case 1:
-						i = new Intent(context, WirelessManager.class);
-						context.startActivity(i);
-						break;
-*/
-					case 1:
-						i = new Intent(context, ApplicationBackup.class);
-						context.startActivity(i);
-						break;
-				}
-			}
-		});
-    	dialog = builder.create();
-    	dialog.show();
+    	switch(type) {
+    		case MANAGE_DIALOG:
+    			//un-comment Wifi Info here and in the manafest file 
+    	    	//to display Wifi info. Also uncomment and change case number below
+    	    	CharSequence[] options = {"Process Info", /*"Wifi Info",*/ "Application backup"};
+    	    	
+    	    	builder = new AlertDialog.Builder(context);
+    	    	builder.setTitle("Tool Box");
+    	    	builder.setIcon(R.drawable.toolbox);
+    	    	builder.setItems(options, new DialogInterface.OnClickListener() {
+    	    		
+    				public void onClick(DialogInterface dialog, int index) {
+    					Intent i;
+    					
+    					switch(index) {
+    						case 0:
+    							i = new Intent(context, ProcessManager.class);
+    							context.startActivity(i);
+    							break;
+    	/*
+    						case 1:
+    							i = new Intent(context, WirelessManager.class);
+    							context.startActivity(i);
+    							break;
+    	*/
+    						case 1:
+    							i = new Intent(context, ApplicationBackup.class);
+    							context.startActivity(i);
+    							break;
+    					}
+    				}
+    			});
+    	    	dialog = builder.create();
+    	    	dialog.show();
+    			break;
+    			
+    		case MULTISELECT_DIAlOG:
+    			if(multiselect_data == null || multiselect_data.size() < 1) {
+    				Toast.makeText(context, "You have not yet selected anything", Toast.LENGTH_SHORT).show();
+    			} else {
+	    			CharSequence[] option = {"Copy", "Delete", "Email"};
+	    			
+	    			builder = new AlertDialog.Builder(context);
+	    			builder.setTitle("Multi-Select operations");
+	    			builder.setIcon(R.drawable.multiselectbox_38);
+	    			builder.setItems(option, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int index) {
+							String[] data = new String[multiselect_data.size()];
+							int at = 0;
+							
+							switch(index) {
+								case 0:	/*COPY*/
+									info_label.setText("Holding " 
+											+ multiselect_data.size() + " file(s) to be moved");
+									break;
+									
+								case 1:	/*DELETE*/
+									for(String string : multiselect_data)
+										data[at++] = string;
+									
+									new BackgroundSearch(DELETE_TYPE).execute(data);
+									multiselect_data.clear();
+									break;
+									
+								case 2:	/*EMAIL*/
+									ArrayList<Uri> uris = new ArrayList<Uri>();
+									int length = multiselect_data.size();
+									Intent mail_int = new Intent();
+					    			
+					    			mail_int.setAction(android.content.Intent.ACTION_SEND_MULTIPLE);
+					    			mail_int.setType("application/mail");
+					    			mail_int.putExtra(Intent.EXTRA_BCC, "");
+					    			mail_int.putExtra(Intent.EXTRA_SUBJECT, " ");
+					    			
+					    			for(int i = 0; i < length; i++) {
+					    				File file = new File(multiselect_data.get(i));
+					    				uris.add(Uri.fromFile(file));
+					    			}
+					    			
+					    			mail_int.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+					    			context.startActivity(Intent.createChooser(mail_int, "Email using..."));
+					    			
+					    			multiselect_data.clear();
+									break;
+							}
+							multi_select_flag = false;
+							delegate.clearMultiPosition();
+						}
+					});
+	    			dialog = builder.create();
+	    			dialog.show();
+    			}
+    			break;
+    	}
 	}
     
+	private void add_multiSelect_file(String src) {
+		
+		if(multiselect_data == null)
+			multiselect_data = new ArrayList<String>();
+		
+		multiselect_data.add(src);
+	}
+
+	
 	/**
 	 * A nested class to handle displaying a custom view in the ListView that
 	 * is used in the Main activity. If any icons are to be added, they must
@@ -369,9 +545,37 @@ public class EventHandler implements OnClickListener {
     	private final int MG = KB * KB;
     	private final int GB = MG * KB;
     	private String display_size;
+    	private ArrayList<Integer> positions;
     	
     	public TableRow() {
     		super(context, R.layout.tablerow, data_source);
+    	}
+    	
+    	public void addMultiPosition(int index, String path) {
+    		if(positions == null)
+    			positions = new ArrayList<Integer>();
+    		
+    		if(multiselect_data == null) {
+    			positions.add(index);
+    			add_multiSelect_file(path);
+    			
+    		} else if(multiselect_data.contains(path)) {
+    			if(positions.contains(index))
+    				positions.remove(new Integer(index));
+    			
+    			multiselect_data.remove(path);
+    			
+    		} else {
+    			positions.add(index);
+    			add_multiSelect_file(path);
+    		}
+    		
+    		notifyDataSetChanged();
+    	}
+   	
+    	public void clearMultiPosition() {
+    		positions.clear();
+    		notifyDataSetChanged();
     	}
     	
     	public String getFilePermissions(File file) {
@@ -386,13 +590,6 @@ public class EventHandler implements OnClickListener {
     		
     		return per;
     	}
-    	
-    	/*
-    	 * (non-Javadoc)
-    	 * 
-    	 * background work
-    	 * @see java.lang.Runnable#run()
-    	 */
     	
     	@Override
     	public View getView(int position, View convertView, ViewGroup parent) {
@@ -410,10 +607,16 @@ public class EventHandler implements OnClickListener {
     			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     			view = inflater.inflate(R.layout.tablerow, parent, false);
     		}
-    		
+    		    		
     		TextView top = (TextView)view.findViewById(R.id.top_view);
     		TextView bottom = (TextView)view.findViewById(R.id.bottom_view);
     		ImageView icon = (ImageView)view.findViewById(R.id.row_image);
+    		ImageView select = (ImageView)view.findViewById(R.id.multiselect_icon);
+    		
+    		if (positions != null && positions.contains(position))
+    			select.setVisibility(ImageView.VISIBLE);
+    		else
+    			select.setVisibility(ImageView.GONE);
     		
     		top.setTextColor(color);
     		bottom.setTextColor(color);
@@ -560,6 +763,10 @@ public class EventHandler implements OnClickListener {
     			case ZIP_TYPE:
     				pr_dialog = ProgressDialog.show(context, "Zipping", "Zipping folder...", true, false);
     				break;
+    				
+    			case DELETE_TYPE:
+    				pr_dialog = ProgressDialog.show(context, "Deleting", "Deleting files...", true, false);
+    				break;
     		}
     	}
 
@@ -576,7 +783,15 @@ public class EventHandler implements OnClickListener {
 					return found;
 					
 				case COPY_TYPE:
-					copy_rtn = file_mg.copyToDirectory(params[0], params[1]);
+					int len = params.length;
+					
+					if(multiselect_data != null && !multiselect_data.isEmpty()) 
+						for(int i = 1; i < len; i++)
+							copy_rtn = file_mg.copyToDirectory(params[i], params[0]);
+						
+					else
+						copy_rtn = file_mg.copyToDirectory(params[0], params[1]);
+					
 					return null;
 					
 				case UNZIP_TYPE:
@@ -589,6 +804,13 @@ public class EventHandler implements OnClickListener {
 					
 				case ZIP_TYPE:
 					file_mg.createZipFile(params[0]);
+					return null;
+					
+				case DELETE_TYPE:
+					int size = params.length;
+					
+					for(int i = 0; i < size; i++)
+						file_mg.deleteTarget(params[i]);
 					return null;
 			}
 			
@@ -635,12 +857,18 @@ public class EventHandler implements OnClickListener {
 					break;
 					
 				case COPY_TYPE:
+					if(multiselect_data != null && !multiselect_data.isEmpty()) {
+						multi_select_flag = false;
+						multiselect_data.clear();
+					}
+					
 					if(copy_rtn == 0)
 						Toast.makeText(context, "File successfully copied and pasted", Toast.LENGTH_SHORT).show();
 					else
 						Toast.makeText(context, "Copy pasted failed", Toast.LENGTH_SHORT).show();
 					
 					pr_dialog.dismiss();
+					info_label.setText("");
 					break;
 					
 				case UNZIP_TYPE:
@@ -656,6 +884,17 @@ public class EventHandler implements OnClickListener {
 				case ZIP_TYPE:
 					updateDirectory(file_mg.getNextDir(file_mg.getCurrentDir(), true));
 					pr_dialog.dismiss();
+					break;
+					
+				case DELETE_TYPE:
+					if(multiselect_data != null && !multiselect_data.isEmpty()) {
+						multiselect_data.clear();
+						multi_select_flag = false;
+					}
+					
+					updateDirectory(file_mg.getNextDir(file_mg.getCurrentDir(), true));
+					pr_dialog.dismiss();
+					info_label.setText("");
 					break;
 			}
 		}
