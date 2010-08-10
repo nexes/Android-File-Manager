@@ -21,8 +21,7 @@
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
 	android:padding="6dip"
-	android:background="@color/black"
-	>
+	android:background="@color/black">
 	<ImageView
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
@@ -30,12 +29,20 @@
 		android:layout_alignParentBottom="true"
 		android:layout_marginRight="6dip"
 		android:id="@+id/row_image"/>
-	
+		<ImageView
+			android:id="@+id/multiselect_icon"
+			android:src="@drawable/singlecheck"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
+			android:layout_alignParentBottom="true"
+			android:layout_toRightOf="@id/row_image"
+			android:visibility="gone"/>
 			<TextView
 				android:id="@+id/top_view"
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
-				android:layout_toRightOf="@id/row_image"
+				android:layout_toRightOf="@id/multiselect_icon"
 				android:layout_alignParentTop="true"
 				android:layout_alignParentRight="true"
 				android:textStyle="bold"
