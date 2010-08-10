@@ -101,6 +101,7 @@
 				android:layout_width="fill_parent"
 				android:layout_height="3dp"
 				android:background="@color/darkGray"/>
+<!-- 
 		<TableRow>
 			<LinearLayout
 				android:orientation="vertical"
@@ -135,6 +136,7 @@
 			<View
 				android:layout_width="fill_parent"
 				android:layout_height="3dp"
-				android:background="@color/darkGray"/>				
+				android:background="@color/darkGray"/>
+-->			
 	</TableLayout>
 </ScrollView>

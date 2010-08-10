@@ -41,8 +41,8 @@ public class HelpManager extends Activity implements OnClickListener {
 		setContentView(R.layout.help_layout);
 		
 		String text = "Open Manager: If you have any questions or "
-						+"comments, please email the developer or vist "
-						+"the Open Manager web page\nThank you.";
+						+"comments, please email the developer or visit "
+						+"the Open Manager web page.\n\nThank you\n\n";
 		
 		TextView label = (TextView)findViewById(R.id.help_top_label);
 		label.setText(text);

@@ -18,8 +18,6 @@
 
 package com.nexes.manager;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Stack;
 import java.io.File;
@@ -34,13 +32,24 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import android.util.Log;
+
 /**
+ * This class is completely modular, which is to say that it has
+ * no reference to the any GUI activity. This class could be taken
+ * and placed into in other java (not just Android) project and work.
+ * <br>
+ * <br>
+ * This class handles all file and folder operations on the system.
+ * This class dictates how files and folders are copied/pasted, (un)zipped
+ * renamed and searched. The EventHandler class will generally call these
+ * methods and have them performed in a background thread. Threading is not
+ * done in this class.  
  * 
  * @author Joe Berria
  *
  */
 public class FileManager {
-	
 	private static final int BUFFER = 2048;
 	private boolean show_hidden = false;
 	private double dir_size = 0;
@@ -48,7 +57,9 @@ public class FileManager {
 	private ArrayList<String> dir_content;
 	
 	/**
-	 * 
+	 * Constructs an object of the class
+	 * <br>
+	 * this class uses a stack to handle the navigation of directories.
 	 */
 	public FileManager() {
 		dir_content = new ArrayList<String>();
@@ -59,18 +70,19 @@ public class FileManager {
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * This will return a string of the current directory path
+	 * @return the current directory
 	 */
 	public String getCurrentDir() {
 		return path_stack.peek();
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * This will return a string of the current home path.
+	 * @return	the home directory
 	 */
 	public ArrayList<String> getHomeDir() {
+		//This will eventually be placed as a settings item
 		path_stack.clear();
 		path_stack.push("/");
 		path_stack.push(path_stack.peek() + "sdcard");
@@ -79,16 +91,17 @@ public class FileManager {
 	}
 	
 	/**
-	 * 
-	 * @param choice
+	 * This will determine if hidden files and folders will be visible to the
+	 * user.
+	 * @param choice	true if user is veiwing hidden files, false otherwise
 	 */
 	public void setShowHiddenFiles(boolean choice) {
 		show_hidden = choice;
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * This will return a string that represents the path of the previous path
+	 * @return	returns the previous path
 	 */
 	public ArrayList<String> getPreviousDir() {
 		int size = path_stack.size();
@@ -127,8 +140,8 @@ public class FileManager {
 
 	/**
 	 * 
-	 * @param old
-	 * @param newDir
+	 * @param old		the file to be copied
+	 * @param newDir	the directory to move the file to
 	 * @return
 	 */
 	public int copyToDirectory(String old, String newDir) {
@@ -140,6 +153,7 @@ public class FileManager {
 		if(old_file.isFile() && temp_dir.isDirectory() && temp_dir.canWrite()){
 			String file_name = old.substring(old.lastIndexOf("/"), old.length());
 			File cp_file = new File(newDir + file_name);
+			Log.e("FILEMANAGER", "new file name " + cp_file);
 			try {
 				BufferedOutputStream o_stream = new BufferedOutputStream(new FileOutputStream(cp_file));
 				BufferedInputStream i_stream = new BufferedInputStream(new FileInputStream(old_file));

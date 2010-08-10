@@ -21,7 +21,6 @@ package com.nexes.manager;
 import android.app.ListActivity;
 import android.app.AlertDialog;
 import android.os.Bundle;
-//import android.os.Process;
 import android.view.View;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -110,13 +109,8 @@ public class ProcessManager extends ListActivity {
 						break;
 						
 					case 2:
-						Intent i;
-						try {
-							i = pk.getLaunchIntentForPackage(display_process.get(index).processName);
-							
-						} catch (NameNotFoundException e) {
-							i = null;
-						}
+						Intent i = pk.getLaunchIntentForPackage(display_process.get(index).processName);
+						
 						if(i != null)
 							startActivity(i);
 						else

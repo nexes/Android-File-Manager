@@ -34,19 +34,28 @@
  		android:layout_width="wrap_content"
  		android:layout_height="wrap_content"
  		android:layout_gravity="center"
- 		android:layout_weight="1"
+ 		android:layout_weight="0"
  		android:paddingTop="15dip"
  		android:textColor="@color/white"/>
- 	<Button
- 		android:id="@+id/help_email_bt"
- 		android:layout_width="wrap_content"
- 		android:layout_height="wrap_content"
- 		android:layout_gravity="center"
- 		android:text="Email Developer"/>
- 	<Button
- 		android:id="@+id/help_website_bt"
- 		android:layout_width="wrap_content"
- 		android:layout_height="wrap_content"
- 		android:layout_gravity="center"
- 		android:text="About Open Manager"/>	
+ 	<LinearLayout
+ 		android:orientation="horizontal"
+ 		android:layout_width="fill_parent"
+ 		android:layout_height="fill_parent"
+ 		android:layout_weight="4"
+ 		android:background="@color/darkGray">
+ 		<Button
+	 		android:id="@+id/help_email_bt"
+	 		android:layout_width="wrap_content"
+	 		android:layout_height="wrap_content"
+	 		android:layout_gravity="center"
+	 		android:layout_weight="1"
+	 		android:text="Email Developer"/>
+	 	<Button
+	 		android:id="@+id/help_website_bt"
+	 		android:layout_width="wrap_content"
+	 		android:layout_height="wrap_content"
+	 		android:layout_gravity="center"
+	 		android:layout_weight="1"
+	 		android:text="Website"/>	
+ 	</LinearLayout>
  </LinearLayout>
