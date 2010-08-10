@@ -23,6 +23,7 @@ import java.io.File;
 import android.app.Dialog;
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -137,7 +138,7 @@ public final class Main extends ListActivity {
         detail_label = (TextView)findViewById(R.id.detail_label);
         path_label.setText("path: /sdcard");
         
-        handler.setUpdateLabel(path_label);
+        handler.setUpdateLabel(path_label, detail_label);
         
         ImageButton help_b = (ImageButton)findViewById(R.id.help_button);
         help_b.setOnClickListener(handler);
@@ -153,6 +154,12 @@ public final class Main extends ListActivity {
         
         ImageButton manage_b = (ImageButton)findViewById(R.id.manage_button);
         manage_b.setOnClickListener(handler);
+        
+        ImageButton multi_b = (ImageButton)findViewById(R.id.multiselect_button);
+        multi_b.setOnClickListener(handler);
+        
+        ImageButton operation_b = (ImageButton)findViewById(R.id.multioperation_button);
+        operation_b.setOnClickListener(handler);
     }
 
 	/**
@@ -164,123 +171,136 @@ public final class Main extends ListActivity {
     @Override
     public void onListItemClick(ListView parent, View view, int position, long id) {
     	final String item = handler.getData(position);
+    	boolean multiSelect = handler.isMultiSelected();
     	File file = new File(flmg.getCurrentDir() + "/" + item);
     	String item_ext = null;
-    	
+
     	try {
     		item_ext = item.substring(item.lastIndexOf("."), item.length());
-    	}catch(IndexOutOfBoundsException e) {
-    		item_ext = ""; 
-    	}
+    		
+    	} catch(IndexOutOfBoundsException e) {	item_ext = ""; }
     	
-    	/*directory selected*/
-    	if (file.isDirectory()) {
-    		if(file.canRead()) {
-	    		handler.updateDirectory(flmg.getNextDir(item, false));
-	    		path_label.setText(flmg.getCurrentDir());
+    	/*
+    	 * If the user has multi-select on, we just need to record the file
+    	 * not make an intent for it.
+    	 */
+    	if(multiSelect) {
+    		table.addMultiPosition(position, file.getPath());
+    		
+    	} else {
+	    	if (file.isDirectory()) {
+				if(file.canRead()) {
+		    		handler.updateDirectory(flmg.getNextDir(item, false));
+		    		path_label.setText(flmg.getCurrentDir());
+		    		
+		    		/*set back button switch to true (this will be better implemented later)*/
+		    		if(!use_back_key)
+		    			use_back_key = true;
+		    		
+	    		} else
+	    			Toast.makeText(this, "Can't read folder due to permissions", Toast.LENGTH_SHORT).show();
+	    	}
+	    	
+	    	/*music file selected--add more audio formats*/
+	    	else if (item_ext.equalsIgnoreCase(".mp3") || item_ext.equalsIgnoreCase(".m4a")) {
+	    			
+	        	Intent music_int = new Intent(this, AudioPlayblack.class);
+	        	music_int.putExtra("MUSIC PATH", flmg.getCurrentDir() +"/"+ item);
+	        	startActivity(music_int);
+	    	}
+	    	
+	    	/*photo file selected*/
+	    	else if(item_ext.equalsIgnoreCase(".jpeg") || item_ext.equalsIgnoreCase(".jpg") ||
+	    			item_ext.equalsIgnoreCase(".png")  || item_ext.equalsIgnoreCase(".gif") || 
+	    			item_ext.equalsIgnoreCase(".tiff")) {
+	 			    		
+	    		if (file.exists()) {
+		    		Intent pic_int = new Intent();
+		    		pic_int.setAction(android.content.Intent.ACTION_VIEW);
+		    		pic_int.setDataAndType(Uri.fromFile(file), "image/*");
+		    		startActivity(pic_int);
+	    		}
+	    	}
+	    	
+	    	/*video file selected--add more video formats*/
+	    	else if(item_ext.equalsIgnoreCase(".m4v") || item_ext.equalsIgnoreCase(".3gp") ||
+	    			item_ext.equalsIgnoreCase(".wmv") || item_ext.equalsIgnoreCase(".mp4") || 
+	    			item_ext.equalsIgnoreCase(".ogg")) {
 	    		
-	    		/*set back button switch to true (this will be better implemented later)*/
-	    		if(!use_back_key)
-	    			use_back_key = true;
-    		}else
-    			Toast.makeText(this, "Can't read folder due to permissions", Toast.LENGTH_SHORT).show();
-    	}
-    	
-    	/*music file selected--add more audio formats*/
-    	else if (item_ext.equalsIgnoreCase(".mp3") || item_ext.equalsIgnoreCase(".m4a")) {
-    			
-        	Intent music_int = new Intent(this, AudioPlayblack.class);
-        	music_int.putExtra("MUSIC PATH", flmg.getCurrentDir() +"/"+ item);
-        	startActivity(music_int);
-    	}
-    	
-    	/*photo file selected*/
-    	else if(item_ext.equalsIgnoreCase(".jpeg") || item_ext.equalsIgnoreCase(".jpg") ||
-    			item_ext.equalsIgnoreCase(".png")  || item_ext.equalsIgnoreCase(".gif") || 
-    			item_ext.equalsIgnoreCase(".tiff")) {
-    			    		
-    		if (file.exists()) {
-	    		Intent pic_int = new Intent();
-	    		pic_int.setAction(android.content.Intent.ACTION_VIEW);
-	    		pic_int.setDataAndType(Uri.fromFile(file), "image/*");
-	    		startActivity(pic_int);
-    		}
-    	}
-    	
-    	/*video file selected--add more video formats*/
-    	else if(item_ext.equalsIgnoreCase(".m4v") || item_ext.equalsIgnoreCase(".3gp") ||
-    			item_ext.equalsIgnoreCase(".wmv") || item_ext.equalsIgnoreCase(".mp4") || 
-    			item_ext.equalsIgnoreCase(".ogg")) {
-    		
-    		if (file.exists()) {
-	    		Intent movie_int = new Intent();
-	    		movie_int.setAction(android.content.Intent.ACTION_VIEW);
-	    		movie_int.setDataAndType(Uri.fromFile(file), "video/*");
-	    		startActivity(movie_int);
-    		}
-    	}
-    	
-    	/*zip and gzip file selected (gzip will be implemented soon)*/
-    	else if(item_ext.equalsIgnoreCase(".zip")) { //|| item_ext.equalsIgnoreCase(".gzip")) {
-    		
-    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    		AlertDialog alert;
-    		zipped_target = flmg.getCurrentDir() + "/" + item;
-    		CharSequence[] option = {"Extract here", "Extract to..."};
-    		
-    		builder.setTitle("Extract");
-    		builder.setItems(option, new DialogInterface.OnClickListener() {
-
-				public void onClick(DialogInterface dialog, int which) {
-					switch(which) {
-						case 0:
-							String dir = flmg.getCurrentDir();
-							handler.unZipFile(item, dir + "/");
-							break;
-							
-						case 1:
-							detail_label.setText("Holding " + item + " to extract");
-							holding_zip = true;
-							break;
+	    		if (file.exists()) {
+		    		Intent movie_int = new Intent();
+		    		movie_int.setAction(android.content.Intent.ACTION_VIEW);
+		    		movie_int.setDataAndType(Uri.fromFile(file), "video/*");
+		    		startActivity(movie_int);
+	    		}
+	    	}
+	    	
+	    	/*zip and gzip file selected (gzip will be implemented soon)*/
+	    	else if(item_ext.equalsIgnoreCase(".zip")) { //|| item_ext.equalsIgnoreCase(".gzip")) {
+	    		
+	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    		AlertDialog alert;
+	    		zipped_target = flmg.getCurrentDir() + "/" + item;
+	    		CharSequence[] option = {"Extract here", "Extract to..."};
+	    		
+	    		builder.setTitle("Extract");
+	    		builder.setItems(option, new DialogInterface.OnClickListener() {
+	
+					public void onClick(DialogInterface dialog, int which) {
+						switch(which) {
+							case 0:
+								String dir = flmg.getCurrentDir();
+								handler.unZipFile(item, dir + "/");
+								break;
+								
+							case 1:
+								detail_label.setText("Holding " + item + " to extract");
+								holding_zip = true;
+								break;
+						}
 					}
-				}
-    		});
-    		
-    		alert = builder.create();
-    		alert.show();
-    	}
-    	
-    	/*pdf file selected*/
-    	else if(item_ext.equalsIgnoreCase(".pdf")) {
-    		
-    		if(file.exists()) {
-	    		Intent file_int = new Intent();
-	    		file_int.setAction(android.content.Intent.ACTION_VIEW);
-	    		file_int.setDataAndType(Uri.fromFile(file), "application/pdf");
-	    		startActivity(file_int);
-    		}
-    	}
-    	
-    	/*Android application file*/
-    	else if(item_ext.equalsIgnoreCase(".apk")){
-    		
-    		if(file.exists()) {
-    			Intent apk_int = new Intent();
-    			apk_int.setAction(android.content.Intent.ACTION_VIEW);
-    			apk_int.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
-    			startActivity(apk_int);
-    		}
-    	}
-    	
-    	/* HTML file */
-    	else if(item_ext.equalsIgnoreCase(".html")) {
-    		
-    		if(file.exists()) {
-    			Intent other_int = new Intent();
-    			other_int.setAction(android.content.Intent.ACTION_VIEW);
-    			other_int.setDataAndType(Uri.fromFile(file), "application/htmlviewer");
-    			startActivity(other_int);
-    		}
+	    		});
+	    		
+	    		alert = builder.create();
+	    		alert.show();
+	    	}
+	    	
+	    	/*pdf file selected*/
+	    	else if(item_ext.equalsIgnoreCase(".pdf")) {
+	    		
+	    		if(file.exists()) {
+		    		Intent file_int = new Intent();
+		    		file_int.setAction(android.content.Intent.ACTION_VIEW);
+		    		file_int.setDataAndType(Uri.fromFile(file), "application/pdf");
+		    		startActivity(file_int);
+	    		}
+	    	}
+	    	
+	    	/*Android application file*/
+	    	else if(item_ext.equalsIgnoreCase(".apk")){
+	    		
+	    		if(file.exists()) {
+	    			Intent apk_int = new Intent();
+	    			apk_int.setAction(android.content.Intent.ACTION_VIEW);
+	    			apk_int.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+	    			startActivity(apk_int);
+	    		}
+	    	}
+	    	
+	    	/* HTML file */
+	    	else if(item_ext.equalsIgnoreCase(".html")) {
+	    		
+	    		if(file.exists()) {
+	    			Intent html_int = new Intent();
+	    			html_int.setAction(android.content.Intent.ACTION_VIEW);
+	    			html_int.setDataAndType(Uri.fromFile(file), "application/htmlviewer");
+	    			try {
+	    				startActivity(html_int);
+	    			} catch(ActivityNotFoundException e) {
+	    				Toast.makeText(this, "Sorry, couldn't find a HTML view", Toast.LENGTH_SHORT).show();
+	    			}
+	    		}
+	    	}
     	}
 	}
     
@@ -379,7 +399,8 @@ public final class Main extends ListActivity {
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo info) {
     	super.onCreateContextMenu(menu, v, info);
-
+    	
+    	boolean multi_data = handler.hasMultiSelectData();
     	AdapterContextMenuInfo _info = (AdapterContextMenuInfo)info;
     	selected_list_item = handler.getData(_info.position);
 
@@ -389,7 +410,7 @@ public final class Main extends ListActivity {
         	menu.add(0, D_MENU_RENAME, 0, "Rename Folder");
         	menu.add(0, D_MENU_COPY, 0, "Copy Folder");
         	menu.add(0, D_MENU_ZIP, 0, "Zip Folder");
-        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(holding_file);
+        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(holding_file || multi_data);        	
         	menu.add(0, D_MENU_UNZIP, 0, "Extract here").setEnabled(holding_zip);
     		
     	} else {
@@ -420,18 +441,8 @@ public final class Main extends ListActivity {
 					}
     			});
     			builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {	
-						int result = flmg.deleteTarget(flmg.getCurrentDir() +"/"+ selected_list_item);
-						String temp = flmg.getCurrentDir();
-						
-						if(result == 0) {
-							Toast.makeText(Main.this, "Folder " + selected_list_item + " deleted", Toast.LENGTH_SHORT).show();
-	    					handler.updateDirectory(flmg.getNextDir(temp, true));
-						}
-						else {
-							Toast.makeText(Main.this, "Folder " + selected_list_item + " not deleted", Toast.LENGTH_SHORT).show();
-							handler.updateDirectory(flmg.getNextDir(temp, true));
-						}
+					public void onClick(DialogInterface dialog, int which) {
+						handler.deleteFile(flmg.getCurrentDir() + "/" + selected_list_item);
 					}
     			});
     			AlertDialog alert_d = builder.create();
@@ -461,11 +472,16 @@ public final class Main extends ListActivity {
     		case D_MENU_COPY:
     			copied_target = flmg.getCurrentDir() +"/"+ selected_list_item;
     			holding_file = true;
-    			detail_label.setText("Holding file " + selected_list_item);
+    			detail_label.setText("Waiting to paste file " + selected_list_item);
     			return true;
     			
     		case D_MENU_PASTE:
-    			if(holding_file && copied_target.length() > 1) {
+    			boolean multi_select = handler.hasMultiSelectData();
+    			
+    			if(multi_select) {
+    				handler.copyFileMultiSelect(flmg.getCurrentDir() +"/"+ selected_list_item);
+    				
+    			} else if(holding_file && copied_target.length() > 1) {
     				
     				handler.copyFile(copied_target, flmg.getCurrentDir() +"/"+ selected_list_item);
     				holding_file = false;
@@ -633,7 +649,7 @@ public final class Main extends ListActivity {
     		
     		return true;
     		
-    	} else if(keycode == KeyEvent.KEYCODE_BACK && use_back_key && !current.equals("/")) {	   		
+    	} else if(keycode == KeyEvent.KEYCODE_BACK && use_back_key && !current.equals("/")) {
     		handler.updateDirectory(flmg.getPreviousDir());
     		path_label.setText(flmg.getCurrentDir());
     		
