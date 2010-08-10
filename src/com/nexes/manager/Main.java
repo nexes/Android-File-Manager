@@ -650,6 +650,11 @@ public final class Main extends ListActivity {
     		return true;
     		
     	} else if(keycode == KeyEvent.KEYCODE_BACK && use_back_key && !current.equals("/")) {
+    		if(handler.isMultiSelected()) {
+    			table.killMultiSelect();
+    			Toast.makeText(Main.this, "Multi-select is now off", Toast.LENGTH_SHORT).show();
+    		}
+    		
     		handler.updateDirectory(flmg.getPreviousDir());
     		path_label.setText(flmg.getCurrentDir());
     		
