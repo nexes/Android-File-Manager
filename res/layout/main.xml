@@ -21,15 +21,17 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@color/offWhite"
-    >
+    android:background="@color/offWhite">
+    <HorizontalScrollView
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:scrollbars="none">
     	<LinearLayout
     		android:orientation="horizontal"
     		android:layout_width="fill_parent"
     		android:layout_height="wrap_content"
     		android:background="@color/offWhite"
-    		android:gravity="center"
-    		>
+    		android:gravity="center">
     		<ImageButton
     			android:layout_width="wrap_content"
     			android:layout_height="wrap_content"
@@ -60,6 +62,22 @@
     			android:padding="6dp"
     			android:layout_marginRight="2dp"
     			android:layout_marginTop="6dp"
+    			android:src="@drawable/multiselect_38"
+    			android:id="@+id/multiselect_button"/>
+    		<ImageButton
+    			android:layout_width="wrap_content"
+    			android:layout_height="wrap_content"
+    			android:layout_marginRight="2dp"
+    			android:layout_marginTop="6dp"
+    			android:padding="6dp"
+    			android:src="@drawable/multiselectbox_38"
+    			android:id="@+id/multioperation_button"/>
+    		<ImageButton
+    			android:layout_width="wrap_content"
+    			android:layout_height="wrap_content"
+    			android:padding="6dp"
+    			android:layout_marginRight="2dp"
+    			android:layout_marginTop="6dp"
     			android:src="@drawable/info"
     			android:id="@+id/info_button"/>
     		<ImageButton
@@ -71,27 +89,24 @@
     			android:src="@drawable/help"
     			android:id="@+id/help_button"/>
     	</LinearLayout>
-    	
+    </HorizontalScrollView>
     	<TextView
-    	android:id="@+id/path_label"
-    	android:text="path is"
-    	android:textColor="@color/white"
-    	android:background="@color/black"
-    	android:maxLines="1"
-    	android:layout_width="fill_parent"
-    	android:layout_height="wrap_content"
-    	android:layout_weight="0"
-    	/>
-    <TextView
-    	android:id="@+id/detail_label"
-    	android:textColor="@color/brightRed"
-    	android:background="@color/black"
-    	android:layout_width="fill_parent"
-    	android:layout_height="wrap_content"
-    	android:gravity="center"
-    	android:layout_weight="0"
-    	/>
-    	
+	    	android:id="@+id/path_label"
+	    	android:text="path is"
+	    	android:textColor="@color/white"
+	    	android:background="@color/black"
+	    	android:maxLines="1"
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="wrap_content"
+	    	android:layout_weight="0"/>
+	    <TextView
+	    	android:id="@+id/detail_label"
+	    	android:textColor="@color/brightRed"
+	    	android:background="@color/black"
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="wrap_content"
+	    	android:gravity="center"
+	    	android:layout_weight="0"/>
     	<ListView
     		android:layout_width="fill_parent"
     		android:layout_height="fill_parent"
@@ -99,7 +114,6 @@
     		android:smoothScrollbar="true"
     		android:longClickable="true"
     		android:background="@color/black"
-    		android:id="@+id/android:list"
-     		>
-    	</ListView>
+    		android:id="@+id/android:list"/>
 </LinearLayout>
+
