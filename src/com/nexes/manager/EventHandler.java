@@ -315,9 +315,12 @@ public class EventHandler implements OnClickListener {
 			case R.id.multiselect_button:
 				if(multi_select_flag) {
 					multi_select_flag = false;
-					Toast.makeText(context, "Multi-Select is off", Toast.LENGTH_SHORT).show();
 					delegate.clearMultiPosition();
-					multiselect_data.clear();
+					
+					if(multiselect_data != null && !multiselect_data.isEmpty())
+						multiselect_data.clear();
+					
+					Toast.makeText(context, "Multi-Select is off", Toast.LENGTH_SHORT).show();
 					
 				} else {
 					multi_select_flag = true;
@@ -574,8 +577,24 @@ public class EventHandler implements OnClickListener {
     	}
    	
     	public void clearMultiPosition() {
-    		positions.clear();
+    		if(positions != null && !positions.isEmpty())
+    			positions.clear();
+    		
     		notifyDataSetChanged();
+    	}
+    	
+    	/*
+    	 * this is only being called to the onKeyDown method in Main.java
+    	 * this will turn off multi-select
+    	 */
+    	public void killMultiSelect() {
+    		multi_select_flag = false;
+    		
+    		if(positions != null && !positions.isEmpty())
+    			positions.clear();
+    		
+    		if(multiselect_data != null && !multiselect_data.isEmpty())
+    			multiselect_data.clear();
     	}
     	
     	public String getFilePermissions(File file) {
