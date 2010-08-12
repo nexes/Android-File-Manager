@@ -276,9 +276,7 @@ public class EventHandler implements OnClickListener {
 			case R.id.back_button:
 				if (file_mg.getCurrentDir() != "/") {
 					if(multi_select_flag) {
-						multi_select_flag = false;
-						delegate.clearMultiPosition();
-						multiselect_data.clear();
+						delegate.killMultiSelect();
 						Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
 					}
 					updateDirectory(file_mg.getPreviousDir());
@@ -288,9 +286,7 @@ public class EventHandler implements OnClickListener {
 			
 			case R.id.home_button:
 				if(multi_select_flag) {
-					multi_select_flag = false;
-					delegate.clearMultiPosition();
-					multiselect_data.clear();
+					delegate.killMultiSelect();
 					Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
 				}
 				updateDirectory(file_mg.getHomeDir());
@@ -584,7 +580,6 @@ public class EventHandler implements OnClickListener {
     	}
     	
     	/*
-    	 * this is only being called to the onKeyDown method in Main.java
     	 * this will turn off multi-select
     	 */
     	public void killMultiSelect() {
