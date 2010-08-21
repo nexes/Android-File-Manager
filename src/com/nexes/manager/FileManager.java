@@ -563,10 +563,16 @@ public class FileManager {
 	}
 
 	/*
+	 * (non-JavaDoc)
+	 * I dont like this method, it needs to be rewritten. Its hacky in that
+	 * if you are searching in the root dir (/) then it is not going to be treated
+	 * as a recursive method so the user dosen't have to sit forever and wait.
 	 * 
-	 * @param dir
-	 * @param fileName
-	 * @param n
+	 * I will rewrite this ugly method.
+	 * 
+	 * @param dir		directory to search in
+	 * @param fileName	filename that is being searched for
+	 * @param n			ArrayList to populate results
 	 */
 	private void search_file(String dir, String fileName, ArrayList<String> n) {
 		File root_dir = new File(dir);
@@ -585,8 +591,8 @@ public class FileManager {
 				else if(check.isDirectory()) {
 					if(name.toLowerCase().contains(fileName.toLowerCase()))
 						n.add(check.getPath());
-					
-					search_file(check.getAbsolutePath(), fileName, n);
+					if(check.canRead() && !dir.equals("/"))
+						search_file(check.getAbsolutePath(), fileName, n);
 				}
 			}
 		}
