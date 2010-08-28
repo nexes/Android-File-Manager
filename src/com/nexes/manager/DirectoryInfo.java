@@ -81,11 +81,14 @@ public class DirectoryInfo extends Activity {
 			File dir = new File(vals[0]);
 			File[] list;
 			double size;
+			int len = 0;
 			
 			size = flmg.getDirSize(vals[0]);
 			
 			list = dir.listFiles();
-			int len = list.length;
+			if(list != null)
+				len = list.length;
+			
 			for (int i = 0; i < len; i++){
 				if(list[i].isFile())
 					file_count++;

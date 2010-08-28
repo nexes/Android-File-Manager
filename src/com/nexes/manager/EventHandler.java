@@ -43,7 +43,7 @@ import android.widget.Toast;
 
 /**
  * This class sits between the Main activity and the FileManager class. 
- * To keep the FileManager class modular, This class exists to handle 
+ * To keep the FileManager class modular, this class exists to handle 
  * UI events and communicate that information to the FileManger class
  * 
  * This class is responsible for the buttons onClick method. If one needs
@@ -290,7 +290,8 @@ public class EventHandler implements OnClickListener {
 					Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
 				}
 				updateDirectory(file_mg.getHomeDir());
-				path_label.setText(file_mg.getCurrentDir());
+				if(path_label != null)
+					path_label.setText(file_mg.getCurrentDir());
 				break;
 				
 			case R.id.info_button:

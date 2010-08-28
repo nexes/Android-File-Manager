@@ -390,7 +390,7 @@ public class FileManager {
 			return 0;
 		}
 		
-		else if(target.exists() && target.isDirectory()) {
+		else if(target.exists() && target.isDirectory() && target.canRead()) {
 			String[] file_list = target.list();
 			
 			if(file_list.length == 0) {
