@@ -27,9 +27,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import android.util.Log;
@@ -52,7 +51,7 @@ import android.util.Log;
 public class FileManager {
 	private static final int BUFFER = 2048;
 	private boolean show_hidden = false;
-	private double dir_size = 0;
+//	private double dir_size = 0;
 	private Stack<String> path_stack;
 	private ArrayList<String> dir_content;
 	
@@ -153,7 +152,7 @@ public class FileManager {
 		if(old_file.isFile() && temp_dir.isDirectory() && temp_dir.canWrite()){
 			String file_name = old.substring(old.lastIndexOf("/"), old.length());
 			File cp_file = new File(newDir + file_name);
-			Log.e("FILEMANAGER", "new file name " + cp_file);
+
 			try {
 				BufferedOutputStream o_stream = new BufferedOutputStream(new FileOutputStream(cp_file));
 				BufferedInputStream i_stream = new BufferedInputStream(new FileInputStream(old_file));
@@ -197,51 +196,44 @@ public class FileManager {
 	 * @param fromDir
 	 */
 	public void extractZipFilesFromDir(String zipName, String toDir, String fromDir) {
-		byte[] buff = new byte[BUFFER];
-		String _directory;
-		BufferedInputStream in_stream = null;
-		BufferedOutputStream out_stream = null;
-		File dest_file;
+		byte[] data = new byte[BUFFER];
 		ZipEntry entry;
-		int len;
+		ZipInputStream zipstream;
 		
-		_directory = toDir + zipName.substring(0, zipName.lastIndexOf(".zip")) + "/";
-		new File(_directory).mkdir();
-		
-		if(fromDir.charAt(fromDir.length() - 1) != '/')
-			fromDir += "/";
+		/* create new directory for zip file */
+		String org_path = fromDir + "/" + zipName;
+		String dest_path = toDir + zipName.substring(0, zipName.length() - 4);
+		String zipDir = dest_path + "/";
+				
+		new File(zipDir).mkdir();
 		
 		try {
-			ZipFile zips = new ZipFile(fromDir + zipName);
-			Enumeration<?> files = zips.entries();
-
-			while (files.hasMoreElements()) {
-			   entry = (ZipEntry) files.nextElement();
-			   String name = entry.getName();
-			   			   
-		   	   if(entry.isDirectory()) {
-				File new_dir = new File(_directory + name);
-				
-				Log.e("NEW DIR", _directory + name);
-				
-				new_dir.mkdir();
-				
-			   } else {
-				in_stream = new BufferedInputStream(zips.getInputStream(entry));
-				dest_file = new File(_directory + name.substring(name.lastIndexOf("/"), name.length()));
-				out_stream = new BufferedOutputStream(new FileOutputStream(dest_file));
-				
-				while((len = in_stream.read(buff, 0, BUFFER)) != -1)
-					out_stream.write(buff, 0, len);
-				
-				out_stream.flush();
-				out_stream.close();
-				in_stream.close();
-			   }	
+			zipstream = new ZipInputStream(new FileInputStream(org_path));
+			
+			while((entry = zipstream.getNextEntry()) != null) {
+				if(entry.isDirectory()) {
+					String ndir = zipDir + entry.getName() + "/";
+					
+					new File(ndir).mkdir();
+					
+				} else {
+					int read = 0;
+					FileOutputStream out = new FileOutputStream(
+												zipDir + entry.getName());
+					while((read = zipstream.read(data, 0, BUFFER)) != -1)
+						out.write(data, 0, read);
+					
+					zipstream.closeEntry();
+					out.close();
+				}
 			}
-		 }catch (IOException e) {
-		    Log.e("ZIP ERROR", e.toString());
-		 }
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -250,51 +242,45 @@ public class FileManager {
 	 * @param directory
 	 */
 	public void extractZipFiles(String zip_file, String directory) {
-		byte[] buff = new byte[BUFFER];
-		String _directory;
-		BufferedInputStream in_stream = null;
-		BufferedOutputStream out_stream = null;
-		File dest_file;
+		byte[] data = new byte[BUFFER];
 		ZipEntry entry;
-		int len;
-
-		File check = new File(directory);
-		if(!check.canRead() || !check.canWrite())
-			return;
+		ZipInputStream zipstream;
 		
-		_directory = directory + zip_file.substring(0, zip_file.lastIndexOf(".zip")) + "/";
-		
-		new File(_directory).mkdir();
+		/* create new directory for zip file */
+		String path = directory + zip_file;
+		String name = path.substring(path.lastIndexOf("/") + 1, 
+									 path.length() - 4);
+		String zipDir = path.substring(0, path.lastIndexOf("/") +1) + 
+									   name + "/";
+		new File(zipDir).mkdir();
 		
 		try {
-			ZipFile zips = new ZipFile(directory + zip_file);
-			Enumeration<?> files = zips.entries();
+			zipstream = new ZipInputStream(new FileInputStream(path));
+			
+			while((entry = zipstream.getNextEntry()) != null) {
+				if(entry.isDirectory()) {
+					String ndir = zipDir + entry.getName() + "/";
 
-			while (files.hasMoreElements()) {
-			   entry = (ZipEntry) files.nextElement();
-			   String name = entry.getName();
-			   
-			   Log.e("unzipping file", name);
-			   
-		   	   if(entry.isDirectory()) {
-		   		   new File(_directory + name).mkdir();
-								
-			   } else {
-				in_stream = new BufferedInputStream(zips.getInputStream(entry));
-				dest_file = new File(_directory + name.substring(name.lastIndexOf("/"), name.length()));
-				out_stream = new BufferedOutputStream(new FileOutputStream(dest_file));
-				
-				while((len = in_stream.read(buff, 0, BUFFER)) != -1)
-					out_stream.write(buff, 0, len);
-				
-				out_stream.flush();
-				out_stream.close();
-				in_stream.close();
-			   }
+					new File(ndir).mkdir();
+					
+				} else {
+					int read = 0;
+					FileOutputStream out = new FileOutputStream(
+											zipDir + entry.getName());
+					while((read = zipstream.read(data, 0, BUFFER)) != -1)
+						out.write(data, 0, read);
+					
+					zipstream.closeEntry();
+					out.close();
+				}
 			}
-		 }catch (IOException e) {
-		    Log.e("ZIP ERROR", e.toString());
-		 }
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -368,8 +354,13 @@ public class FileManager {
 	 * @return
 	 */
 	public int createDir(String path, String name) {
-		if(path.length() < 1 || name.length() < 1)
+		int len = path.length();
+		
+		if(len < 1 || len < 1)
 			return -1;
+		
+		if(path.charAt(len - 1) != '/')
+			path += "/";
 		
 		if (new File(path+name).mkdir())
 			return 0;
@@ -423,7 +414,7 @@ public class FileManager {
 	}
 		
 	/**
-	 * nice, make a good comment.
+	 * converts integer from wifi manager to an IP address. 
 	 * 
 	 * @param des
 	 * @return
@@ -472,10 +463,9 @@ public class FileManager {
 	 * @return
 	 */
 	public double getDirSize(String path) {
-		if(dir_size != 0)
-			dir_size = 0;
+		double dir_size = 0;
 		
-		get_dir_size(new File(path));
+		get_dir_size(new File(path), dir_size);
 		
 		return dir_size;
 	}
@@ -545,7 +535,7 @@ public class FileManager {
 	 * 
 	 * @param path
 	 */
-	private void get_dir_size(File path) {
+	private void get_dir_size(File path, double size) {
 		File[] list = path.listFiles();
 		int len;
 		
@@ -554,10 +544,10 @@ public class FileManager {
 			
 			for (int i = 0; i < len; i++) {
 				if(list[i].isFile())
-					dir_size += list[i].length();
+					size += list[i].length();
 				
 				else if(list[i].isDirectory() && list[i].canRead())
-					get_dir_size(list[i]);
+					get_dir_size(list[i], size);
 			}
 		}
 	}
