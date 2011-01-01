@@ -56,7 +56,7 @@ import android.widget.Toast;
  * text views. This class relies on the class EventHandler to handle all button
  * press logic and to control the data displayed on its ListView. This class
  * also relies on the FileManager class to handle all file operations such as
- * copy/paste zip/unzip etc etc. However most interaction with the FileManager class
+ * copy/paste zip/unzip etc. However most interaction with the FileManager class
  * is done via the EventHandler class. Also the SettingsMangager class to load
  * and save user settings. 
  * <br>
@@ -91,7 +91,6 @@ public final class Main extends ListActivity {
 	private static final int F_MENU_RENAME = 0x0b;			//context menu id
 	private static final int F_MENU_ATTACH = 0x0c;			//context menu id
 	private static final int F_MENU_COPY =   0x0d;			//context menu id
-	
 	private static final int SETTING_REQ = 	 0x10;			//request code for intent
 
 	private FileManager flmg;
@@ -140,6 +139,7 @@ public final class Main extends ListActivity {
         
         handler.setUpdateLabel(path_label, detail_label);
         
+        /*buttons on the top row or the main activity*/
         ImageButton help_b = (ImageButton)findViewById(R.id.help_button);
         help_b.setOnClickListener(handler);
         
@@ -158,8 +158,15 @@ public final class Main extends ListActivity {
         ImageButton multi_b = (ImageButton)findViewById(R.id.multiselect_button);
         multi_b.setOnClickListener(handler);
         
-        ImageButton operation_b = (ImageButton)findViewById(R.id.multioperation_button);
-        operation_b.setOnClickListener(handler);
+        /*hidden multiselect buttons*/
+        Button copy = (Button)findViewById(R.id.hidden_copy);
+        copy.setOnClickListener(handler);
+        
+        Button attach = (Button)findViewById(R.id.hidden_attach);
+        attach.setOnClickListener(handler);
+        
+        Button delete = (Button)findViewById(R.id.hidden_delete);
+        delete.setOnClickListener(handler);
     }
 
 	/**
@@ -178,7 +185,9 @@ public final class Main extends ListActivity {
     	try {
     		item_ext = item.substring(item.lastIndexOf("."), item.length());
     		
-    	} catch(IndexOutOfBoundsException e) {	item_ext = ""; }
+    	} catch(IndexOutOfBoundsException e) {	
+    		item_ext = ""; 
+    	}
     	
     	/*
     	 * If the user has multi-select on, we just need to record the file
@@ -197,8 +206,10 @@ public final class Main extends ListActivity {
 		    		if(!use_back_key)
 		    			use_back_key = true;
 		    		
-	    		} else
-	    			Toast.makeText(this, "Can't read folder due to permissions", Toast.LENGTH_SHORT).show();
+	    		} else {
+	    			Toast.makeText(this, "Can't read folder due to permissions", 
+	    							Toast.LENGTH_SHORT).show();
+	    		}
 	    	}
 	    	
 	    	/*music file selected--add more audio formats*/
@@ -215,10 +226,10 @@ public final class Main extends ListActivity {
 	    			item_ext.equalsIgnoreCase(".tiff")) {
 	 			    		
 	    		if (file.exists()) {
-		    		Intent pic_int = new Intent();
-		    		pic_int.setAction(android.content.Intent.ACTION_VIEW);
-		    		pic_int.setDataAndType(Uri.fromFile(file), "image/*");
-		    		startActivity(pic_int);
+		    		Intent picIntent = new Intent();
+		    		picIntent.setAction(android.content.Intent.ACTION_VIEW);
+		    		picIntent.setDataAndType(Uri.fromFile(file), "image/*");
+		    		startActivity(picIntent);
 	    		}
 	    	}
 	    	
@@ -228,15 +239,15 @@ public final class Main extends ListActivity {
 	    			item_ext.equalsIgnoreCase(".ogg")) {
 	    		
 	    		if (file.exists()) {
-		    		Intent movie_int = new Intent();
-		    		movie_int.setAction(android.content.Intent.ACTION_VIEW);
-		    		movie_int.setDataAndType(Uri.fromFile(file), "video/*");
-		    		startActivity(movie_int);
+		    		Intent movieIntent = new Intent();
+		    		movieIntent.setAction(android.content.Intent.ACTION_VIEW);
+		    		movieIntent.setDataAndType(Uri.fromFile(file), "video/*");
+		    		startActivity(movieIntent);
 	    		}
 	    	}
 	    	
-	    	/*zip and gzip file selected (gzip will be implemented soon)*/
-	    	else if(item_ext.equalsIgnoreCase(".zip")) { //|| item_ext.equalsIgnoreCase(".gzip")) {
+	    	/*zip and gzip file selected (gzip will be implemented later)*/
+	    	else if(item_ext.equalsIgnoreCase(".zip")) {
 	    		
 	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 	    		AlertDialog alert;
@@ -269,10 +280,10 @@ public final class Main extends ListActivity {
 	    	else if(item_ext.equalsIgnoreCase(".pdf")) {
 	    		
 	    		if(file.exists()) {
-		    		Intent file_int = new Intent();
-		    		file_int.setAction(android.content.Intent.ACTION_VIEW);
-		    		file_int.setDataAndType(Uri.fromFile(file), "application/pdf");
-		    		startActivity(file_int);
+		    		Intent pdfIntent = new Intent();
+		    		pdfIntent.setAction(android.content.Intent.ACTION_VIEW);
+		    		pdfIntent.setDataAndType(Uri.fromFile(file), "application/pdf");
+		    		startActivity(pdfIntent);
 	    		}
 	    	}
 	    	
@@ -280,10 +291,11 @@ public final class Main extends ListActivity {
 	    	else if(item_ext.equalsIgnoreCase(".apk")){
 	    		
 	    		if(file.exists()) {
-	    			Intent apk_int = new Intent();
-	    			apk_int.setAction(android.content.Intent.ACTION_VIEW);
-	    			apk_int.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
-	    			startActivity(apk_int);
+	    			Intent apkIntent = new Intent();
+	    			apkIntent.setAction(android.content.Intent.ACTION_VIEW);
+	    			apkIntent.setDataAndType(Uri.fromFile(file), 
+	    									 "application/vnd.android.package-archive");
+	    			startActivity(apkIntent);
 	    		}
 	    	}
 	    	
@@ -291,14 +303,26 @@ public final class Main extends ListActivity {
 	    	else if(item_ext.equalsIgnoreCase(".html")) {
 	    		
 	    		if(file.exists()) {
-	    			Intent html_int = new Intent();
-	    			html_int.setAction(android.content.Intent.ACTION_VIEW);
-	    			html_int.setDataAndType(Uri.fromFile(file), "application/htmlviewer");
+	    			Intent htmlIntent = new Intent();
+	    			htmlIntent.setAction(android.content.Intent.ACTION_VIEW);
+	    			htmlIntent.setDataAndType(Uri.fromFile(file), "application/htmlviewer");
 	    			try {
-	    				startActivity(html_int);
+	    				startActivity(htmlIntent);
 	    			} catch(ActivityNotFoundException e) {
-	    				Toast.makeText(this, "Sorry, couldn't find a HTML view", Toast.LENGTH_SHORT).show();
+	    				Toast.makeText(this, "Sorry, couldn't find a HTML view", 
+	    									Toast.LENGTH_SHORT).show();
 	    			}
+	    		}
+	    	}
+	    	
+	    	/* generic intent */
+	    	else {
+	    		if(file.exists()) {
+		    		Intent generic = new Intent();
+		    		generic.setAction(android.content.Intent.ACTION_VIEW);
+		    		generic.setDataAndType(Uri.fromFile(file), "application/*");
+		    		
+		    		startActivity(generic);
 	    		}
 	    	}
     	}
@@ -307,6 +331,7 @@ public final class Main extends ListActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	super.onActivityResult(requestCode, resultCode, data);
+    	
     	SharedPreferences.Editor editor = settings.edit();
     	boolean check;
     	int color;
@@ -339,7 +364,7 @@ public final class Main extends ListActivity {
     		/* free space will be implemented at a later time */
 //    	menu.add(0, MENU_SPACE, 0, "Free space").setIcon(R.drawable.space);
     	menu.add(0, MENU_SETTING, 0, "Settings").setIcon(R.drawable.setting);
-    	menu.add(0, MENU_SORT, 0, "Filter").setIcon(R.drawable.filter);
+    	menu.add(0, MENU_SORT, 0, "Sort").setIcon(R.drawable.filter);
     	menu.add(0, MENU_QUIT, 0, "Quit").setIcon(R.drawable.logout);
     	
     	return true;
@@ -409,8 +434,8 @@ public final class Main extends ListActivity {
         	menu.add(0, D_MENU_DELETE, 0, "Delete Folder");
         	menu.add(0, D_MENU_RENAME, 0, "Rename Folder");
         	menu.add(0, D_MENU_COPY, 0, "Copy Folder");
-        	menu.add(0, D_MENU_ZIP, 0, "Zip Folder");
-        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(holding_file || multi_data);        	
+        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(holding_file || multi_data);
+        	menu.add(0, D_MENU_ZIP, 0, "Zip Folder");        	
         	menu.add(0, D_MENU_UNZIP, 0, "Extract here").setEnabled(holding_zip);
     		
     	} else {
@@ -636,8 +661,8 @@ public final class Main extends ListActivity {
     
     /*
      * (non-Javadoc)
-     * This will check if the user is at root dir. If so, if they press back
-     * again, it will close the app. 
+     * This will check if the user is at root directory. If so, if they press back
+     * again, it will close the application. 
      * @see android.app.Activity#onKeyDown(int, android.view.KeyEvent)
      */
     @Override
