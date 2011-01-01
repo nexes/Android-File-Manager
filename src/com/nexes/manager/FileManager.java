@@ -51,7 +51,6 @@ import android.util.Log;
 public class FileManager {
 	private static final int BUFFER = 2048;
 	private boolean show_hidden = false;
-//	private double dir_size = 0;
 	private Stack<String> path_stack;
 	private ArrayList<String> dir_content;
 	
@@ -154,8 +153,10 @@ public class FileManager {
 			File cp_file = new File(newDir + file_name);
 
 			try {
-				BufferedOutputStream o_stream = new BufferedOutputStream(new FileOutputStream(cp_file));
-				BufferedInputStream i_stream = new BufferedInputStream(new FileInputStream(old_file));
+				BufferedOutputStream o_stream = new BufferedOutputStream(
+												new FileOutputStream(cp_file));
+				BufferedInputStream i_stream = new BufferedInputStream(
+											   new FileInputStream(old_file));
 				
 				while((read = i_stream.read(data, 0, BUFFER)) != -1)
 					o_stream.write(data, 0, read);
@@ -304,7 +305,8 @@ public class FileManager {
 			_path = path;
 		
 		try {
-			ZipOutputStream zip_out = new ZipOutputStream(new BufferedOutputStream(
+			ZipOutputStream zip_out = new ZipOutputStream(
+					new BufferedOutputStream(
 					new FileOutputStream(_path + name + ".zip"), BUFFER));
 			
 			for (int i = 0; i < len; i++)
@@ -514,7 +516,8 @@ public class FileManager {
 		if(file.isFile()){
 			ZipEntry entry = new ZipEntry(file.getPath());
 			zout.putNextEntry(entry);
-			BufferedInputStream instream = new BufferedInputStream(new FileInputStream(file));
+			BufferedInputStream instream = new BufferedInputStream(
+										   new FileInputStream(file));
 			
 			while((read = instream.read(data, 0, BUFFER)) != -1)
 				zout.write(data, 0, read);
@@ -522,7 +525,7 @@ public class FileManager {
 			zout.closeEntry();
 			instream.close();
 			
-		}else /*file is a directory*/{
+		}else {
 			String[] list = file.list();
 			int len = list.length;
 			
@@ -568,7 +571,7 @@ public class FileManager {
 		File root_dir = new File(dir);
 		String[] list = root_dir.list();
 		
-		if(list != null) {
+		if(list != null && root_dir.canRead()) {
 			int len = list.length;
 			
 			for (int i = 0; i < len; i++) {
@@ -581,7 +584,8 @@ public class FileManager {
 				else if(check.isDirectory()) {
 					if(name.toLowerCase().contains(fileName.toLowerCase()))
 						n.add(check.getPath());
-					if(check.canRead() && !dir.equals("/"))
+					
+					else if(check.canRead() && !dir.equals("/"))
 						search_file(check.getAbsolutePath(), fileName, n);
 				}
 			}
