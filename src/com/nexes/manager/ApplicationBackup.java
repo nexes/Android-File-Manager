@@ -125,9 +125,9 @@ public class ApplicationBackup extends ListActivity {
 		
 		for(ApplicationInfo appInfo : all_apps) {
 			if((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0 && 
-					   (appInfo.flags & FLAG_UPDATED_SYS_APP) == 0 && 
-					    appInfo.flags != 0)
-							appList.add(appInfo);
+					   (appInfo.flags & FLAG_UPDATED_SYS_APP) == 0 && appInfo.flags != 0)
+				
+				appList.add(appInfo);
 		}
 		
 		appLabel.setText("You have " +appList.size() + " downloaded apps");
