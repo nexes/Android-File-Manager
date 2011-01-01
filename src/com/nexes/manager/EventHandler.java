@@ -25,16 +25,20 @@ import java.util.ArrayList;
 
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Bitmap;
 import android.view.View.OnClickListener;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -53,9 +57,9 @@ import android.widget.Toast;
  * This class is responsible for handling the information that is displayed
  * from the list view (the files and folder) with a a nested class TableRow.
  * The TableRow class is responsible for displaying which icon is shown for each
- * entry. For example a folder will display the folder icon, a Word doc will display
- * a word icon and so on. If more icons are to be added, the TableRow class must be updated
- * to display those changes. 
+ * entry. For example a folder will display the folder icon, a Word doc will 
+ * display a word icon and so on. If more icons are to be added, the TableRow 
+ * class must be updated to display those changes. 
  * 
  * @author Joe Berria
  */
@@ -64,27 +68,24 @@ public class EventHandler implements OnClickListener {
 	 * Unique types to control which file operation gets
 	 * performed in the background
 	 */
-	private static final int SEARCH_TYPE =	0x00;
-	private static final int COPY_TYPE =	0x01;
-	private static final int UNZIP_TYPE =	0x02;
-	private static final int UNZIPTO_TYPE =	0x03;
-	private static final int ZIP_TYPE =		0x04;
-	private static final int DELETE_TYPE = 	0x05;
-	
-	private static final int MANAGE_DIALOG = 0x06;
+    private static final int SEARCH_TYPE =		0x00;
+	private static final int COPY_TYPE =		0x01;
+	private static final int UNZIP_TYPE =		0x02;
+	private static final int UNZIPTO_TYPE =		0x03;
+	private static final int ZIP_TYPE =			0x04;
+	private static final int DELETE_TYPE = 		0x05;
+	private static final int MANAGE_DIALOG =	 0x06;
 	private static final int MULTISELECT_DIAlOG = 0x07;
-
+	
 	private final Context context;
 	private final FileManager file_mg;
+	private TableRow delegate;
 	private boolean multi_select_flag = false;
 	private int color = Color.WHITE;
-	private TableRow delegate;
 	
-	//the data used to feed info into the array adapter
-	private ArrayList<String> data_source;
-	
-	//ArrayList used to hold data when multi-select is on
-	private ArrayList<String> multiselect_data;
+	//the data used to feed info into the array adapter and when multi-select is on
+	private ArrayList<String> data_source, multiselect_data;
+
 	private TextView path_label;
 	private TextView info_label;
 	
@@ -137,7 +138,7 @@ public class EventHandler implements OnClickListener {
 	}
 
 	/**
-	 * This method is called to the Main activity and this has the same
+	 * This method is called from the Main activity and this has the same
 	 * reference to the same object so when changes are made here or there
 	 * they will display in the same way.
 	 * 
@@ -161,7 +162,7 @@ public class EventHandler implements OnClickListener {
 	}
 	
 	/**
-	 * A getter method to indicate whether the user wants to select 
+	 * Indicates whether the user wants to select 
 	 * multiple files or folders at a time.
 	 * <br><br>
 	 * false by default
@@ -177,10 +178,7 @@ public class EventHandler implements OnClickListener {
 	 * @return	returns true if the user is holding multiple objects (multi-select)
 	 */
 	public boolean hasMultiSelectData() {
-		if(multiselect_data != null && multiselect_data.size() > 0)
-			return true;
-		else
-			return false;
+		return (multiselect_data != null && multiselect_data.size() > 0);
 	}
 	
 	/**
@@ -190,7 +188,7 @@ public class EventHandler implements OnClickListener {
 	 * @param name	the name to search for
 	 */
 	public void searchForFile(String name) {
-		new BackgroundSearch(SEARCH_TYPE).execute(name);
+		new BackgroundWork(SEARCH_TYPE).execute(name);
 	}
 	
 	/**
@@ -200,7 +198,7 @@ public class EventHandler implements OnClickListener {
 	 * @param name
 	 */
 	public void deleteFile(String name) {
-		new BackgroundSearch(DELETE_TYPE).execute(name);
+		new BackgroundWork(DELETE_TYPE).execute(name);
 	}
 	
 	/**
@@ -212,7 +210,7 @@ public class EventHandler implements OnClickListener {
 	public void copyFile(String oldLocation, String newLocation) {
 		String[] data = {oldLocation, newLocation};
 		
-		new BackgroundSearch(COPY_TYPE).execute(data);
+		new BackgroundWork(COPY_TYPE).execute(data);
 	}
 	
 	/**
@@ -230,7 +228,7 @@ public class EventHandler implements OnClickListener {
 			for(String s : multiselect_data)
 				data[index++] = s;
 			
-			new BackgroundSearch(COPY_TYPE).execute(data);
+			new BackgroundWork(COPY_TYPE).execute(data);
 		}
 	}
 	
@@ -238,10 +236,10 @@ public class EventHandler implements OnClickListener {
 	 * This will extract a zip file to the same directory.
 	 * 
 	 * @param file	the zip file name
-	 * @param path	the path were the zip file will be extracted (the current dir)
+	 * @param path	the path were the zip file will be extracted (the current directory)
 	 */
 	public void unZipFile(String file, String path) {
-		new BackgroundSearch(UNZIP_TYPE).execute(file, path);
+		new BackgroundWork(UNZIP_TYPE).execute(file, path);
 	}
 	
 	/**
@@ -253,7 +251,7 @@ public class EventHandler implements OnClickListener {
 	 * @param oldDir	the dir where the zip file is
 	 */
 	public void unZipFileToDir(String name, String newDir, String oldDir) {
-		new BackgroundSearch(UNZIPTO_TYPE).execute(name, newDir, oldDir);
+		new BackgroundWork(UNZIPTO_TYPE).execute(name, newDir, oldDir);
 	}
 	
 	/**
@@ -262,7 +260,7 @@ public class EventHandler implements OnClickListener {
 	 * @param zipPath	the path to the directory you want to zip
 	 */
 	public void zipFile(String zipPath) {
-		new BackgroundSearch(ZIP_TYPE).execute(zipPath);
+		new BackgroundWork(ZIP_TYPE).execute(zipPath);
 	}
 
 	/**
@@ -271,13 +269,15 @@ public class EventHandler implements OnClickListener {
 	 */
 	@Override
 	public void onClick(View v) {
-
+		LinearLayout hidden_lay;
+		
 		switch(v.getId()) {
 			case R.id.back_button:
 				if (file_mg.getCurrentDir() != "/") {
 					if(multi_select_flag) {
 						delegate.killMultiSelect();
-						Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
+						Toast.makeText(context, "Multi-select is now off", 
+										Toast.LENGTH_SHORT).show();
 					}
 					updateDirectory(file_mg.getPreviousDir());
 					path_label.setText(file_mg.getCurrentDir());
@@ -287,7 +287,8 @@ public class EventHandler implements OnClickListener {
 			case R.id.home_button:
 				if(multi_select_flag) {
 					delegate.killMultiSelect();
-					Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
+					Toast.makeText(context, "Multi-select is now off", 
+										Toast.LENGTH_SHORT).show();
 				}
 				updateDirectory(file_mg.getHomeDir());
 				if(path_label != null)
@@ -310,6 +311,8 @@ public class EventHandler implements OnClickListener {
 				break;
 				
 			case R.id.multiselect_button:
+				LinearLayout hidden = (LinearLayout)((Activity) context).
+										findViewById(R.id.hidden_buttons);
 				if(multi_select_flag) {
 					multi_select_flag = false;
 					delegate.clearMultiPosition();
@@ -317,22 +320,63 @@ public class EventHandler implements OnClickListener {
 					if(multiselect_data != null && !multiselect_data.isEmpty())
 						multiselect_data.clear();
 					
-					Toast.makeText(context, "Multi-Select is off", Toast.LENGTH_SHORT).show();
+					hidden.setVisibility(LinearLayout.GONE);
 					
 				} else {
 					multi_select_flag = true;
-					Toast.makeText(context, "Multi-Select is on", Toast.LENGTH_SHORT).show();
+					hidden.setVisibility(LinearLayout.VISIBLE);
 				}
 				break;
+			
+			/* three hidden buttons for multiselect*/
+			case R.id.hidden_attach:
+				ArrayList<Uri> uris = new ArrayList<Uri>();
+				int length = multiselect_data.size();
+				Intent mail_int = new Intent();
+    			
+    			mail_int.setAction(android.content.Intent.ACTION_SEND_MULTIPLE);
+    			mail_int.setType("application/mail");
+    			mail_int.putExtra(Intent.EXTRA_BCC, "");
+    			mail_int.putExtra(Intent.EXTRA_SUBJECT, " ");
+    			
+    			for(int i = 0; i < length; i++) {
+    				File file = new File(multiselect_data.get(i));
+    				uris.add(Uri.fromFile(file));
+    			}
+    			
+    			mail_int.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+    			context.startActivity(Intent.createChooser(mail_int, 
+    													   "Email using..."));
+    			
+    			multiselect_data.clear();
+    			
+    			hidden_lay = (LinearLayout)((Activity) context).
+								findViewById(R.id.hidden_buttons);
+    			hidden_lay.setVisibility(LinearLayout.GONE);
+				break;
 				
-			case R.id.multioperation_button:
-				if(multi_select_flag) {
-					display_dialog(MULTISELECT_DIAlOG);
-					
-				} else {
-					Toast.makeText(context, "Turn on multi-select to use these operations", 
-									Toast.LENGTH_SHORT).show();
-				}
+			case R.id.hidden_copy:
+				info_label.setText("Holding " + multiselect_data.size() + 
+								   " file(s) to be copied");
+				
+				hidden_lay = (LinearLayout)((Activity) context).
+										findViewById(R.id.hidden_buttons);
+				hidden_lay.setVisibility(LinearLayout.GONE);
+				break;
+				
+			case R.id.hidden_delete:
+				String[] data = new String[multiselect_data.size()];
+				int at = 0;
+				
+				for(String string : multiselect_data)
+					data[at++] = string;
+				
+				new BackgroundWork(DELETE_TYPE).execute(data);
+				multiselect_data.clear();
+				
+				hidden_lay = (LinearLayout)((Activity) context).
+											findViewById(R.id.hidden_buttons);
+				hidden_lay.setVisibility(LinearLayout.GONE);
 				break;
 		}
 	}
@@ -376,9 +420,9 @@ public class EventHandler implements OnClickListener {
 	}
 	
 	/**
-	 * Sort the contents of the dir by type, dir will be listed first.
+	 * Sort the contents of the directory by type, directory will be listed first.
 	 * This method will sort and then call the update method to update 
-	 * the gui so you dont have to. calling this method will update the 
+	 * the GUI so you don't have to. calling this method will update the 
 	 * list in Main activity.
 	 */
 	public void sortByType() {
@@ -403,25 +447,23 @@ public class EventHandler implements OnClickListener {
 	 * called to update the file contents as the user navigates there
 	 * phones file system. 
 	 * 
-	 * @param content	an ArrayList of the file/folders in the current dir.
+	 * @param content	an ArrayList of the file/folders in the current directory.
 	 */
-	public void updateDirectory(ArrayList<String> content) {
-		int len = content.size();
-		
+	public void updateDirectory(ArrayList<String> content) {	
 		if(!data_source.isEmpty())
 			data_source.clear();
 		
-		for(int i = 0; i < len; i++)
-			data_source.add(content.get(i));
+		for(String data : content)
+			data_source.add(data);
 		
 		delegate.notifyDataSetChanged();
 	}
 
 	/**
 	 * This private method is used to display options the user can select when
-	 * the toolbox button is pressed. The wifi option is commented out as it doesn't
-	 * seem to fit with the overall idea of the app. However to display it, just uncomment
-	 * the below code and the code in the AndroidManifest.xml file. 
+	 * the tool box button is pressed. The WIFI option is commented out as it doesn't
+	 * seem to fit with the overall idea of the application. However to display it, just 
+	 * uncomment the below code and the code in the AndroidManifest.xml file. 
 	 */
 	private void display_dialog(int type) {
 		AlertDialog.Builder builder;
@@ -429,8 +471,8 @@ public class EventHandler implements OnClickListener {
     	
     	switch(type) {
     		case MANAGE_DIALOG:
-    			//un-comment Wifi Info here and in the manafest file 
-    	    	//to display Wifi info. Also uncomment and change case number below
+    			//un-comment WIFI Info here and in the manifest file 
+    	    	//to display WIFI info. Also uncomment and change case number below
     	    	CharSequence[] options = {"Process Info", /*"Wifi Info",*/ "Application backup"};
     	    	
     	    	builder = new AlertDialog.Builder(context);
@@ -462,73 +504,23 @@ public class EventHandler implements OnClickListener {
     	    	dialog = builder.create();
     	    	dialog.show();
     			break;
-    			
-    		case MULTISELECT_DIAlOG:
-    			if(multiselect_data == null || multiselect_data.size() < 1) {
-    				Toast.makeText(context, "You have not yet selected anything", Toast.LENGTH_SHORT).show();
-    			} else {
-	    			CharSequence[] option = {"Copy", "Delete", "Email"};
-	    			
-	    			builder = new AlertDialog.Builder(context);
-	    			builder.setTitle("Multi-Select operations");
-	    			builder.setIcon(R.drawable.multiselectbox_38);
-	    			builder.setItems(option, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int index) {
-							String[] data = new String[multiselect_data.size()];
-							int at = 0;
-							
-							switch(index) {
-								case 0:	/*COPY*/
-									info_label.setText("Holding " 
-											+ multiselect_data.size() + " file(s) to be moved");
-									break;
-									
-								case 1:	/*DELETE*/
-									for(String string : multiselect_data)
-										data[at++] = string;
-									
-									new BackgroundSearch(DELETE_TYPE).execute(data);
-									multiselect_data.clear();
-									break;
-									
-								case 2:	/*EMAIL*/
-									ArrayList<Uri> uris = new ArrayList<Uri>();
-									int length = multiselect_data.size();
-									Intent mail_int = new Intent();
-					    			
-					    			mail_int.setAction(android.content.Intent.ACTION_SEND_MULTIPLE);
-					    			mail_int.setType("application/mail");
-					    			mail_int.putExtra(Intent.EXTRA_BCC, "");
-					    			mail_int.putExtra(Intent.EXTRA_SUBJECT, " ");
-					    			
-					    			for(int i = 0; i < length; i++) {
-					    				File file = new File(multiselect_data.get(i));
-					    				uris.add(Uri.fromFile(file));
-					    			}
-					    			
-					    			mail_int.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-					    			context.startActivity(Intent.createChooser(mail_int, "Email using..."));
-					    			
-					    			multiselect_data.clear();
-									break;
-							}
-							multi_select_flag = false;
-							delegate.clearMultiPosition();
-						}
-					});
-	    			dialog = builder.create();
-	    			dialog.show();
-    			}
-    			break;
     	}
 	}
     
 	private void add_multiSelect_file(String src) {
-		
 		if(multiselect_data == null)
 			multiselect_data = new ArrayList<String>();
 		
 		multiselect_data.add(src);
+	}
+	
+	
+	private static class ViewHolder {
+		TextView topView;
+		TextView bottomView;
+		ImageView icon;
+		ImageView mSelect;	//multi-select check mark icon
+		Bitmap image;
 	}
 
 	
@@ -546,9 +538,12 @@ public class EventHandler implements OnClickListener {
     	private final int GB = MG * KB;
     	private String display_size;
     	private ArrayList<Integer> positions;
+    	private ThumbnailCreator listener;
     	
     	public TableRow() {
     		super(context, R.layout.tablerow, data_source);
+    		
+    		listener = new ThumbnailCreator(32, 32);
     	}
     	
     	public void addMultiPosition(int index, String path) {
@@ -608,93 +603,105 @@ public class EventHandler implements OnClickListener {
     	
     	@Override
     	public View getView(int position, View convertView, ViewGroup parent) {
+    		ViewHolder holder;
     		int num_items = 0;
-    		File file;
-    		View view = convertView;
     		String temp = file_mg.getCurrentDir();
-    		file = new File(temp + "/" + data_source.get(position));
+    		File file = new File(temp + "/" + data_source.get(position));
     		String[] list = file.list();
     		
     		if(list != null)
     			num_items = list.length;
    
-    		if(view == null) {
+    		if(convertView == null) {
     			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    			view = inflater.inflate(R.layout.tablerow, parent, false);
+    			convertView = inflater.inflate(R.layout.tablerow, parent, false);
+    			
+    			holder = new ViewHolder();
+    			holder.topView = (TextView)convertView.findViewById(R.id.top_view);
+    			holder.bottomView = (TextView)convertView.findViewById(R.id.bottom_view);
+    			holder.icon = (ImageView)convertView.findViewById(R.id.row_image);
+    			holder.mSelect = (ImageView)convertView.findViewById(R.id.multiselect_icon);
+    			holder.image = null;
+    			
+    			convertView.setTag(holder);
+    			
+    		} else {
+    			holder = (ViewHolder)convertView.getTag();
     		}
-    		    		
-    		TextView top = (TextView)view.findViewById(R.id.top_view);
-    		TextView bottom = (TextView)view.findViewById(R.id.bottom_view);
-    		ImageView icon = (ImageView)view.findViewById(R.id.row_image);
-    		ImageView select = (ImageView)view.findViewById(R.id.multiselect_icon);
     		
     		if (positions != null && positions.contains(position))
-    			select.setVisibility(ImageView.VISIBLE);
+    			holder.mSelect.setVisibility(ImageView.VISIBLE);
     		else
-    			select.setVisibility(ImageView.GONE);
+    			holder.mSelect.setVisibility(ImageView.GONE);
+
+    		holder.topView.setTextColor(color);
+    		holder.bottomView.setTextColor(color);
     		
-    		top.setTextColor(color);
-    		bottom.setTextColor(color);
-    		
-    		if(file.isFile()) {
+    		if(file.isDirectory()) {
+    			holder.icon.setImageResource(R.drawable.folder);
+    			
+    		} else if(file.isFile()) {
     			String ext = file.toString();
     			String sub_ext = ext.substring(ext.lastIndexOf(".") + 1);
     			
-    			/*This series of if, else if statements will determine which icon is displayed*/
+    			/*This series of else if statements will determine which icon is displayed*/
     			if (sub_ext.equalsIgnoreCase("pdf")) {
-    				icon.setImageResource(R.drawable.pdf);
+    				holder.icon.setImageResource(R.drawable.pdf);
     			
     			} else if (sub_ext.equalsIgnoreCase("mp3") || sub_ext.equalsIgnoreCase("wma") || 
     					 sub_ext.equalsIgnoreCase("m4a") || sub_ext.equalsIgnoreCase("m4p")) {
     				
-    				icon.setImageResource(R.drawable.music);
+    				holder.icon.setImageResource(R.drawable.music);
     			
     			} else if (sub_ext.equalsIgnoreCase("png") || sub_ext.equalsIgnoreCase("jpg") ||
     					   sub_ext.equalsIgnoreCase("jpeg") || sub_ext.equalsIgnoreCase("gif")||
     					   sub_ext.equalsIgnoreCase("tiff")) {
-   
-    				icon.setImageResource(R.drawable.image);
- 			
+    				
+    				if(holder.image == null) {
+    					final Handler mHandler = new Handler();
+   						listener.setBitmapToImageView(file.getPath(), mHandler, holder.icon);
+   						
+    				} else {
+    					holder.icon.setImageBitmap(holder.image);
+    				}
+    							
     			} else if (sub_ext.equalsIgnoreCase("zip") || sub_ext.equalsIgnoreCase("gzip") ||
     					   sub_ext.equalsIgnoreCase("gz")) {
-    				icon.setImageResource(R.drawable.zip);
+    				holder.icon.setImageResource(R.drawable.zip);
     			
     			} else if(sub_ext.equalsIgnoreCase("m4v") || sub_ext.equalsIgnoreCase("wmv") ||
     					  sub_ext.equalsIgnoreCase("3gp") || sub_ext.equalsIgnoreCase("mp4")) {
-    				icon.setImageResource(R.drawable.movies);
+    				holder.icon.setImageResource(R.drawable.movies);
     			
     			} else if(sub_ext.equalsIgnoreCase("doc") || sub_ext.equalsIgnoreCase("docx")) {
-    				icon.setImageResource(R.drawable.word);
+    				holder.icon.setImageResource(R.drawable.word);
     			
     			} else if(sub_ext.equalsIgnoreCase("xls") || sub_ext.equalsIgnoreCase("xlsx")) {
-    				icon.setImageResource(R.drawable.excel);
-    			
+    				holder.icon.setImageResource(R.drawable.excel);
+    				
     			} else if(sub_ext.equalsIgnoreCase("ppt") || sub_ext.equalsIgnoreCase("pptx")) {
-    				icon.setImageResource(R.drawable.ppt);
-    			
+    				holder.icon.setImageResource(R.drawable.ppt);   	
+    				
     			} else if(sub_ext.equalsIgnoreCase("html")) {
-    				icon.setImageResource(R.drawable.html32);
-    			
+    				holder.icon.setImageResource(R.drawable.html32);  
+    				
     			} else if(sub_ext.equalsIgnoreCase("xml")) {
-    				icon.setImageResource(R.drawable.xml32);
-    			
+    				holder.icon.setImageResource(R.drawable.xml32);
+    				
     			} else if(sub_ext.equalsIgnoreCase("conf")) {
-    				icon.setImageResource(R.drawable.config32);
-    			
+    				holder.icon.setImageResource(R.drawable.config32);
+    				
     			} else if(sub_ext.equalsIgnoreCase("apk")) {
-    				icon.setImageResource(R.drawable.appicon);
-    			
+    				holder.icon.setImageResource(R.drawable.appicon);
+    				
     			} else if(sub_ext.equalsIgnoreCase("jar")) {
-    				icon.setImageResource(R.drawable.jar32);
-    			
-    			} else { 
-    				icon.setImageResource(R.drawable.text);
+    				holder.icon.setImageResource(R.drawable.jar32);
+    				
+    			} else {
+    				holder.icon.setImageResource(R.drawable.text);
     			}
-    			
-    		} else if(file.isDirectory()) {
-    				icon.setImageResource(R.drawable.folder);
     		}
-    		
+    		    		
     		String permission = getFilePermissions(file);
     		
     		if(file.isFile()) {
@@ -709,20 +716,20 @@ public class EventHandler implements OnClickListener {
     				display_size = String.format("%.2f bytes ", (double)size);
         		
         		if(file.isHidden())
-        			bottom.setText("(hidden) | " + display_size +" | "+ permission);
+        			holder.bottomView.setText("(hidden) | " + display_size +" | "+ permission);
         		else
-        			bottom.setText(display_size +" | "+ permission);
+        			holder.bottomView.setText(display_size +" | "+ permission);
         		
     		} else {
     			if(file.isHidden())
-    				bottom.setText("(hidden) | " + num_items + " items | " + permission);
+    				holder.bottomView.setText("(hidden) | " + num_items + " items | " + permission);
     			else
-    				bottom.setText(num_items + " items | " + permission);
+    				holder.bottomView.setText(num_items + " items | " + permission);
     		}
     		
-    		top.setText(file.getName());
+    		holder.topView.setText(file.getName());
     		
-    		return view;
+    		return convertView;
     	}
     }
     
@@ -738,13 +745,13 @@ public class EventHandler implements OnClickListener {
      * 
      * @author Joe Berria
      */
-    private class BackgroundSearch extends AsyncTask<String, Void, ArrayList<String>> {
+    private class BackgroundWork extends AsyncTask<String, Void, ArrayList<String>> {
     	private String file_name;
     	private ProgressDialog pr_dialog;
     	private int type;
     	private int copy_rtn;
     	
-    	private BackgroundSearch(int type) {
+    	private BackgroundWork(int type) {
     		this.type = type;
     	}
     	
@@ -757,30 +764,39 @@ public class EventHandler implements OnClickListener {
     		
     		switch(type) {
     			case SEARCH_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Searching", "Searching current file system...",
+    				pr_dialog = ProgressDialog.show(context, "Searching", 
+    												"Searching current file system...",
     												true, true);
     				break;
     				
     			case COPY_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Copying", "Copying file...", true, false);
+    				pr_dialog = ProgressDialog.show(context, "Copying", 
+    												"Copying file...", 
+    												true, false);
     				break;
     				
     			case UNZIP_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Unzipping", "Unpacking zip file please wait...",
+    				pr_dialog = ProgressDialog.show(context, "Unzipping", 
+    												"Unpacking zip file please wait...",
     												true, false);
     				break;
     				
     			case UNZIPTO_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Unzipping", "Unpacking zip file please wait...",
+    				pr_dialog = ProgressDialog.show(context, "Unzipping", 
+    												"Unpacking zip file please wait...",
     												true, false);
     				break;
     			
     			case ZIP_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Zipping", "Zipping folder...", true, false);
+    				pr_dialog = ProgressDialog.show(context, "Zipping", 
+    												"Zipping folder...", 
+    												true, false);
     				break;
     				
     			case DELETE_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Deleting", "Deleting files...", true, false);
+    				pr_dialog = ProgressDialog.show(context, "Deleting", 
+    												"Deleting files...", 
+    												true, false);
     				break;
     		}
     	}
@@ -794,18 +810,19 @@ public class EventHandler implements OnClickListener {
 			switch(type) {
 				case SEARCH_TYPE:
 					file_name = params[0];
-					ArrayList<String> found = file_mg.searchInDirectory(file_mg.getCurrentDir(), file_name);
+					ArrayList<String> found = file_mg.searchInDirectory(file_mg.getCurrentDir(), 
+																	    file_name);
 					return found;
 					
 				case COPY_TYPE:
 					int len = params.length;
 					
-					if(multiselect_data != null && !multiselect_data.isEmpty()) 
+					if(multiselect_data != null && !multiselect_data.isEmpty()) {
 						for(int i = 1; i < len; i++)
-							copy_rtn = file_mg.copyToDirectory(params[i], params[0]);
-						
-					else
+							copy_rtn = file_mg.copyToDirectory(params[i], params[0]);	
+					} else {
 						copy_rtn = file_mg.copyToDirectory(params[0], params[1]);
+					}
 					
 					return null;
 					
@@ -826,9 +843,9 @@ public class EventHandler implements OnClickListener {
 					
 					for(int i = 0; i < size; i++)
 						file_mg.deleteTarget(params[i]);
+					
 					return null;
 			}
-			
 			return null;
 		}
 		
@@ -844,7 +861,8 @@ public class EventHandler implements OnClickListener {
 			switch(type) {
 				case SEARCH_TYPE:				
 					if(len == 0) {
-						Toast.makeText(context, "Couldn't find " + file_name, Toast.LENGTH_SHORT).show();
+						Toast.makeText(context, "Couldn't find " + file_name, 
+											Toast.LENGTH_SHORT).show();
 					
 					} else {
 						names = new CharSequence[len];
@@ -860,7 +878,8 @@ public class EventHandler implements OnClickListener {
 							
 							public void onClick(DialogInterface dialog, int position) {
 								String path = file.get(position);
-								updateDirectory(file_mg.getNextDir(path.substring(0, path.lastIndexOf("/")), true));
+								updateDirectory(file_mg.getNextDir(path.
+													substring(0, path.lastIndexOf("/")), true));
 							}
 						});
 						
@@ -878,7 +897,8 @@ public class EventHandler implements OnClickListener {
 					}
 					
 					if(copy_rtn == 0)
-						Toast.makeText(context, "File successfully copied and pasted", Toast.LENGTH_SHORT).show();
+						Toast.makeText(context, "File successfully copied and pasted", 
+											Toast.LENGTH_SHORT).show();
 					else
 						Toast.makeText(context, "Copy pasted failed", Toast.LENGTH_SHORT).show();
 					
