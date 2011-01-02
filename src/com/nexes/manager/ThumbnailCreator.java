@@ -22,11 +22,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.widget.ImageView;
 import android.os.Handler;
+import android.util.Log;
 
 import java.lang.ref.SoftReference;
+import java.io.File;
 
 public class ThumbnailCreator {
-	private String mImage;
 	private int mWidth;
 	private int mHeight;
 
@@ -34,24 +35,45 @@ public class ThumbnailCreator {
 		mWidth = width;
 		mHeight = height;
 	}
-	
+
 	public void setBitmapToImageView(final String imageSrc, 
 									 final Handler handle, 
 									 final ImageView icon) {
-		mImage = imageSrc;
+
+		final File file = new File(imageSrc);
 		
 		Thread thread = new Thread() {
 			public void run() {
 				synchronized (this) {
 					BitmapFactory.Options options = new BitmapFactory.Options();
-					final SoftReference<Bitmap> image;
-
 					options.inSampleSize = 32;
-					image = new SoftReference<Bitmap>(BitmapFactory.decodeFile(mImage, options));
+	//				final SoftReference<Bitmap> image2;
+					final SoftReference<Bitmap> image1;// = 
+	//						new SoftReference<Bitmap>(Bitmap.createScaledBitmap(
+	//														 BitmapFactory.decodeFile(imageSrc),
+	//														 mWidth,
+	//														 mHeight,
+	//														 false));
+					image1 = (file.length() > 100000) ?
+							 new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageSrc, options)) : 
+							 new SoftReference<Bitmap>(Bitmap.createScaledBitmap(
+									 						  BitmapFactory.decodeFile(imageSrc),
+									 						  mWidth,
+									 						  mHeight,
+									 						  false));
 					
-					handle.post(new Runnable() {
+					Log.e("name", imageSrc);
+					Log.e("width", "" + image1.get().getWidth());
+					Log.e("height", "" + image1.get().getHeight());
+					
+			//		image2 = (image1.get().getHeight() > mHeight) ?
+			//				  new SoftReference<Bitmap>(Bitmap.createScaledBitmap(image1.get(), mWidth, mHeight, true))://BitmapFactory.decodeFile(imageSrc, options)) :
+			//				  new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageSrc));
+					
+							  
+				   handle.post(new Runnable() {
 						public void run() {
-							icon.setImageBitmap(image.get());
+							icon.setImageBitmap(image1.get());
 						}
 					});
 				}
