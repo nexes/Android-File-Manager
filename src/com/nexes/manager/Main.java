@@ -305,7 +305,7 @@ public final class Main extends ListActivity {
 	    		if(file.exists()) {
 	    			Intent htmlIntent = new Intent();
 	    			htmlIntent.setAction(android.content.Intent.ACTION_VIEW);
-	    			htmlIntent.setDataAndType(Uri.fromFile(file), "application/htmlviewer");
+	    			htmlIntent.setDataAndType(Uri.fromFile(file), "text/*");
 	    			try {
 	    				startActivity(htmlIntent);
 	    			} catch(ActivityNotFoundException e) {
@@ -522,7 +522,7 @@ public final class Main extends ListActivity {
     			
     		case D_MENU_UNZIP:
     			if(holding_zip && zipped_target.length() > 1) {
-    				String current_dir = flmg.getCurrentDir() +"/" + selected_list_item + "/";
+    				String current_dir = flmg.getCurrentDir() + "/" + selected_list_item + "/";
     				String old_dir = zipped_target.substring(0, zipped_target.lastIndexOf("/"));
     				String name = zipped_target.substring(zipped_target.lastIndexOf("/") + 1, zipped_target.length());
     				
