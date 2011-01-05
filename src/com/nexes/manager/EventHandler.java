@@ -43,7 +43,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-//import android.util.Log;
+import android.util.Log;
 
 /**
  * This class sits between the Main activity and the FileManager class. 
@@ -330,6 +330,10 @@ public class EventHandler implements OnClickListener {
 			
 			/* three hidden buttons for multiselect*/
 			case R.id.hidden_attach:
+				hidden_lay = (LinearLayout)((Activity) context).
+										findViewById(R.id.hidden_buttons);
+				hidden_lay.setVisibility(LinearLayout.GONE);
+				
 				ArrayList<Uri> uris = new ArrayList<Uri>();
 				int length = multiselect_data.size();
 				Intent mail_int = new Intent();
@@ -349,22 +353,22 @@ public class EventHandler implements OnClickListener {
     													   "Email using..."));
     			
     			multiselect_data.clear();
-    			
-    			hidden_lay = (LinearLayout)((Activity) context).
-								findViewById(R.id.hidden_buttons);
-    			hidden_lay.setVisibility(LinearLayout.GONE);
 				break;
 				
 			case R.id.hidden_copy:
-				info_label.setText("Holding " + multiselect_data.size() + 
-								   " file(s) to be copied");
-				
 				hidden_lay = (LinearLayout)((Activity) context).
 										findViewById(R.id.hidden_buttons);
 				hidden_lay.setVisibility(LinearLayout.GONE);
+				
+				info_label.setText("Holding " + multiselect_data.size() + 
+								   " file(s) to be copied");
 				break;
 				
 			case R.id.hidden_delete:
+				hidden_lay = (LinearLayout)((Activity) context).
+										findViewById(R.id.hidden_buttons);
+				hidden_lay.setVisibility(LinearLayout.GONE);
+
 				String[] data = new String[multiselect_data.size()];
 				int at = 0;
 				
@@ -373,10 +377,6 @@ public class EventHandler implements OnClickListener {
 				
 				new BackgroundWork(DELETE_TYPE).execute(data);
 				multiselect_data.clear();
-				
-				hidden_lay = (LinearLayout)((Activity) context).
-											findViewById(R.id.hidden_buttons);
-				hidden_lay.setVisibility(LinearLayout.GONE);
 				break;
 		}
 	}
@@ -506,21 +506,20 @@ public class EventHandler implements OnClickListener {
     			break;
     	}
 	}
-    
+/*    
 	private void add_multiSelect_file(String src) {
 		if(multiselect_data == null)
 			multiselect_data = new ArrayList<String>();
 		
 		multiselect_data.add(src);
 	}
-	
+*/	
 	
 	private static class ViewHolder {
 		TextView topView;
 		TextView bottomView;
 		ImageView icon;
 		ImageView mSelect;	//multi-select check mark icon
-		Bitmap image;
 	}
 
 	
@@ -537,13 +536,14 @@ public class EventHandler implements OnClickListener {
     	private final int MG = KB * KB;
     	private final int GB = MG * KB;
     	private String display_size;
+    	private String dir_name = "/sdcard";
     	private ArrayList<Integer> positions;
-    	private ThumbnailCreator listener;
+    	private ThumbnailCreator thumbnail;
     	
     	public TableRow() {
     		super(context, R.layout.tablerow, data_source);
     		
-    		listener = new ThumbnailCreator(32, 32);
+    		thumbnail = new ThumbnailCreator(32, 32);
     	}
     	
     	public void addMultiPosition(int index, String path) {
@@ -613,7 +613,8 @@ public class EventHandler implements OnClickListener {
     			num_items = list.length;
    
     		if(convertView == null) {
-    			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    			LayoutInflater inflater = (LayoutInflater) context.
+    						getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     			convertView = inflater.inflate(R.layout.tablerow, parent, false);
     			
     			holder = new ViewHolder();
@@ -621,7 +622,6 @@ public class EventHandler implements OnClickListener {
     			holder.bottomView = (TextView)convertView.findViewById(R.id.bottom_view);
     			holder.icon = (ImageView)convertView.findViewById(R.id.row_image);
     			holder.mSelect = (ImageView)convertView.findViewById(R.id.multiselect_icon);
-    			holder.image = null;
     			
     			convertView.setTag(holder);
     			
@@ -629,6 +629,15 @@ public class EventHandler implements OnClickListener {
     			holder = (ViewHolder)convertView.getTag();
     		}
     		
+    		/* This will check if the thumbnail cache needs to be cleared by checking
+    		 * if the user has changed directories. This way the cache wont show
+    		 * a wrong thumbnail image for the new image file 
+    		 */
+    		if(!dir_name.equals(temp)) {
+    			thumbnail.clearBitmapCache();
+    			dir_name = temp;
+    		}    			
+    		  		
     		if (positions != null && positions.contains(position))
     			holder.mSelect.setVisibility(ImageView.VISIBLE);
     		else
@@ -648,38 +657,57 @@ public class EventHandler implements OnClickListener {
     			if (sub_ext.equalsIgnoreCase("pdf")) {
     				holder.icon.setImageResource(R.drawable.pdf);
     			
-    			} else if (sub_ext.equalsIgnoreCase("mp3") || sub_ext.equalsIgnoreCase("wma") || 
-    					 sub_ext.equalsIgnoreCase("m4a") || sub_ext.equalsIgnoreCase("m4p")) {
+    			} else if (sub_ext.equalsIgnoreCase("mp3") || 
+    					   sub_ext.equalsIgnoreCase("wma") || 
+    					   sub_ext.equalsIgnoreCase("m4a") || 
+    					   sub_ext.equalsIgnoreCase("m4p")) {
     				
     				holder.icon.setImageResource(R.drawable.music);
     			
-    			} else if (sub_ext.equalsIgnoreCase("png") || sub_ext.equalsIgnoreCase("jpg") ||
-    					   sub_ext.equalsIgnoreCase("jpeg") || sub_ext.equalsIgnoreCase("gif")||
+    			} else if (sub_ext.equalsIgnoreCase("png") ||
+    					   sub_ext.equalsIgnoreCase("jpg") ||
+    					   sub_ext.equalsIgnoreCase("jpeg")|| 
+    					   sub_ext.equalsIgnoreCase("gif") ||
     					   sub_ext.equalsIgnoreCase("tiff")) {
     				
-    				if(holder.image == null) {
+    				Bitmap thumb = thumbnail.hasBitmapCached(position);
+    				
+    				if(thumb == null) {  					
     					final Handler mHandler = new Handler();
-   						listener.setBitmapToImageView(file.getPath(), mHandler, holder.icon);
+   						thumbnail.setBitmapToImageView(file.getPath(), 
+   													   mHandler, 
+   													   holder.icon);
    						
     				} else {
-    					holder.icon.setImageBitmap(holder.image);
+    					holder.icon.setImageBitmap(thumb);
     				}
     							
-    			} else if (sub_ext.equalsIgnoreCase("zip") || sub_ext.equalsIgnoreCase("gzip") ||
+    			} else if (sub_ext.equalsIgnoreCase("zip")  || 
+    					   sub_ext.equalsIgnoreCase("gzip") ||
     					   sub_ext.equalsIgnoreCase("gz")) {
+    				
     				holder.icon.setImageResource(R.drawable.zip);
     			
-    			} else if(sub_ext.equalsIgnoreCase("m4v") || sub_ext.equalsIgnoreCase("wmv") ||
-    					  sub_ext.equalsIgnoreCase("3gp") || sub_ext.equalsIgnoreCase("mp4")) {
+    			} else if(sub_ext.equalsIgnoreCase("m4v") ||
+    					  sub_ext.equalsIgnoreCase("wmv") ||
+    					  sub_ext.equalsIgnoreCase("3gp") || 
+    					  sub_ext.equalsIgnoreCase("mp4")) {
+    				
     				holder.icon.setImageResource(R.drawable.movies);
     			
-    			} else if(sub_ext.equalsIgnoreCase("doc") || sub_ext.equalsIgnoreCase("docx")) {
+    			} else if(sub_ext.equalsIgnoreCase("doc") || 
+    					  sub_ext.equalsIgnoreCase("docx")) {
+    				
     				holder.icon.setImageResource(R.drawable.word);
     			
-    			} else if(sub_ext.equalsIgnoreCase("xls") || sub_ext.equalsIgnoreCase("xlsx")) {
+    			} else if(sub_ext.equalsIgnoreCase("xls") || 
+    					  sub_ext.equalsIgnoreCase("xlsx")) {
+    				
     				holder.icon.setImageResource(R.drawable.excel);
     				
-    			} else if(sub_ext.equalsIgnoreCase("ppt") || sub_ext.equalsIgnoreCase("pptx")) {
+    			} else if(sub_ext.equalsIgnoreCase("ppt") ||
+    					  sub_ext.equalsIgnoreCase("pptx")) {
+    				
     				holder.icon.setImageResource(R.drawable.ppt);   	
     				
     			} else if(sub_ext.equalsIgnoreCase("html")) {
@@ -730,6 +758,13 @@ public class EventHandler implements OnClickListener {
     		holder.topView.setText(file.getName());
     		
     		return convertView;
+    	}
+    	
+    	private void add_multiSelect_file(String src) {
+    		if(multiselect_data == null)
+    			multiselect_data = new ArrayList<String>();
+    		
+    		multiselect_data.add(src);
     	}
     }
     

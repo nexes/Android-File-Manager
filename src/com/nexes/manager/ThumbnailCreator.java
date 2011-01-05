@@ -25,15 +25,35 @@ import android.os.Handler;
 import android.util.Log;
 
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
 import java.io.File;
 
 public class ThumbnailCreator {
 	private int mWidth;
 	private int mHeight;
+	private ArrayList<Bitmap> mCacheBitmap;
 
 	public ThumbnailCreator(int width, int height) {
 		mWidth = width;
 		mHeight = height;
+		mCacheBitmap = new ArrayList<Bitmap>();
+	}
+	
+	public Bitmap hasBitmapCached(int index) {
+		if(mCacheBitmap.isEmpty())
+			return null;
+		
+		try {
+			return mCacheBitmap.get(index);
+			
+		} catch (IndexOutOfBoundsException e) {
+			Log.e("exception caught", index + "");
+			return null;
+		}		
+	}
+	
+	public void clearBitmapCache() {
+		mCacheBitmap.clear();
 	}
 
 	public void setBitmapToImageView(final String imageSrc, 
@@ -41,39 +61,26 @@ public class ThumbnailCreator {
 									 final ImageView icon) {
 
 		final File file = new File(imageSrc);
-		
+	
 		Thread thread = new Thread() {
 			public void run() {
 				synchronized (this) {
+					final SoftReference<Bitmap> thumb;
 					BitmapFactory.Options options = new BitmapFactory.Options();
 					options.inSampleSize = 32;
-	//				final SoftReference<Bitmap> image2;
-					final SoftReference<Bitmap> image1;// = 
-	//						new SoftReference<Bitmap>(Bitmap.createScaledBitmap(
-	//														 BitmapFactory.decodeFile(imageSrc),
-	//														 mWidth,
-	//														 mHeight,
-	//														 false));
-					image1 = (file.length() > 100000) ?
+										
+					thumb = (file.length() > 100000) ?
 							 new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageSrc, options)) : 
 							 new SoftReference<Bitmap>(Bitmap.createScaledBitmap(
 									 						  BitmapFactory.decodeFile(imageSrc),
 									 						  mWidth,
 									 						  mHeight,
 									 						  false));
+					mCacheBitmap.add(thumb.get());
 					
-					Log.e("name", imageSrc);
-					Log.e("width", "" + image1.get().getWidth());
-					Log.e("height", "" + image1.get().getHeight());
-					
-			//		image2 = (image1.get().getHeight() > mHeight) ?
-			//				  new SoftReference<Bitmap>(Bitmap.createScaledBitmap(image1.get(), mWidth, mHeight, true))://BitmapFactory.decodeFile(imageSrc, options)) :
-			//				  new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageSrc));
-					
-							  
 				   handle.post(new Runnable() {
 						public void run() {
-							icon.setImageBitmap(image1.get());
+							icon.setImageBitmap(thumb.get());
 						}
 					});
 				}
