@@ -50,7 +50,9 @@ import android.util.Log;
  */
 public class FileManager {
 	private static final int BUFFER = 2048;
+	
 	private boolean show_hidden = false;
+	private double dir_size = 0;
 	private Stack<String> path_stack;
 	private ArrayList<String> dir_content;
 	
@@ -465,10 +467,8 @@ public class FileManager {
 	 * @return
 	 */
 	public double getDirSize(String path) {
-		double dir_size = 0;
-		
-		get_dir_size(new File(path), dir_size);
-		
+		get_dir_size(new File(path));
+
 		return dir_size;
 	}
 	
@@ -538,7 +538,7 @@ public class FileManager {
 	 * 
 	 * @param path
 	 */
-	private void get_dir_size(File path, double size) {
+	private void get_dir_size(File path) {
 		File[] list = path.listFiles();
 		int len;
 		
@@ -547,10 +547,10 @@ public class FileManager {
 			
 			for (int i = 0; i < len; i++) {
 				if(list[i].isFile())
-					size += list[i].length();
+					dir_size += list[i].length();
 				
 				else if(list[i].isDirectory() && list[i].canRead())
-					get_dir_size(list[i], size);
+					get_dir_size(list[i]);
 			}
 		}
 	}
