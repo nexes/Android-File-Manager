@@ -64,16 +64,6 @@
     			android:layout_marginTop="6dp"
     			android:src="@drawable/multiselect_38"
     			android:id="@+id/multiselect_button"/>
-   <!-- 
-    		<ImageButton
-    			android:layout_width="wrap_content"
-    			android:layout_height="wrap_content"
-    			android:layout_marginRight="2dp"
-    			android:layout_marginTop="6dp"
-    			android:padding="6dp"
-    			android:src="@drawable/multiselectbox_38"
-    			android:id="@+id/multioperation_button"/>
-   -->
     		<ImageButton
     			android:layout_width="wrap_content"
     			android:layout_height="wrap_content"
@@ -117,32 +107,32 @@
     		android:longClickable="true"
     		android:background="@color/black"
     		android:id="@+id/android:list"/>
+    		
+    <!--  Footer for Multi-select buttons -->
     <LinearLayout
     	android:id="@+id/hidden_buttons"
     	android:orientation="horizontal"
-    	android:layout_width="fill_parent"
+    	android:layout_width="match_parent"
     	android:layout_height="wrap_content"
     	android:background="@color/black"
-    	android:gravity="center"
     	android:visibility="gone">    
     	<Button
     		android:id="@+id/hidden_attach"
     		android:layout_width="wrap_content"
-    		android:layout_height="wrap_content"
-    		android:layout_marginRight="6dp"
+    		android:layout_height="match_parent"
+    		android:layout_weight="1"
     		android:text="attach"/>
     	<Button
     		android:id="@+id/hidden_delete"
     		android:layout_width="wrap_content"
     		android:layout_height="wrap_content"
-    		android:layout_marginLeft="6dp"
-    		android:layout_marginRight="6dp"
-    		android:text="delete"/>
+    		android:layout_weight="1"
+      		android:text="delete"/>
     	<Button
     		android:id="@+id/hidden_copy"
     		android:layout_width="wrap_content"
     		android:layout_height="wrap_content"
-    		android:layout_marginLeft="6dp"
+    		android:layout_weight="1"
     		android:text="copy"/>
     </LinearLayout>		
 </LinearLayout>
