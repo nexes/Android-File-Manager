@@ -296,9 +296,8 @@ public class EventHandler implements OnClickListener {
 			 * three hidden buttons for multiselect
 			 */
 			case R.id.hidden_attach:
-							
 				/* check if user selected objects before going further */
-				if(multiselect_data.isEmpty() || multiselect_data == null) {
+				if(multiselect_data == null || multiselect_data.isEmpty()) {
 					delegate.killMultiSelect(true);
 					break;
 				}
@@ -325,9 +324,8 @@ public class EventHandler implements OnClickListener {
 				break;
 				
 			case R.id.hidden_copy:
-				
 				/* check if user selected objects before going further */
-				if(multiselect_data.isEmpty() || multiselect_data == null) {
+				if(multiselect_data == null || multiselect_data.isEmpty()) {
 					delegate.killMultiSelect(true);
 					break;
 				}
@@ -338,10 +336,9 @@ public class EventHandler implements OnClickListener {
 				delegate.killMultiSelect(false);
 				break;
 				
-			case R.id.hidden_delete:
-				
+			case R.id.hidden_delete:	
 				/* check if user selected objects before going further */
-				if(multiselect_data.isEmpty() || multiselect_data == null) {
+				if(multiselect_data == null || multiselect_data.isEmpty()) {
 					delegate.killMultiSelect(true);
 					break;
 				}
