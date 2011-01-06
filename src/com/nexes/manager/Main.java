@@ -1,6 +1,6 @@
 /*
     Open Manager, an open source file manager for the Android system
-    Copyright (C) 2009, 2010  Joe Berria <nexesdevelopment@gmail.com>
+    Copyright (C) 2009, 2010, 2011  Joe Berria <nexesdevelopment@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -402,10 +402,12 @@ public final class Main extends ListActivity {
 					public void onClick(DialogInterface dialog, int index) {
 						switch(index) {
 						case 0:
-							handler.sortAlphabetical();
+							flmg.setSortType(1);
+							handler.updateDirectory(flmg.getNextDir(flmg.getCurrentDir(), true));
 							break;
 						case 1:
-							handler.sortByType();
+							flmg.setSortType(2);
+							handler.updateDirectory(flmg.getNextDir(flmg.getCurrentDir(), true));
 							break;
 						}
 					}
@@ -429,16 +431,18 @@ public final class Main extends ListActivity {
     	AdapterContextMenuInfo _info = (AdapterContextMenuInfo)info;
     	selected_list_item = handler.getData(_info.position);
 
-    	if(flmg.isDirectory(selected_list_item)) {
+    	/* is it a directory and is multi-select turned off */
+    	if(flmg.isDirectory(selected_list_item) && !handler.isMultiSelected()) {
     		menu.setHeaderTitle("Folder operations");
         	menu.add(0, D_MENU_DELETE, 0, "Delete Folder");
         	menu.add(0, D_MENU_RENAME, 0, "Rename Folder");
         	menu.add(0, D_MENU_COPY, 0, "Copy Folder");
-        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(holding_file || multi_data);
-        	menu.add(0, D_MENU_ZIP, 0, "Zip Folder");        	
+        	menu.add(0, D_MENU_ZIP, 0, "Zip Folder");
+        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(holding_file || multi_data);        	
         	menu.add(0, D_MENU_UNZIP, 0, "Extract here").setEnabled(holding_zip);
     		
-    	} else {
+        /* is it a file and is multi-select turned off */
+    	} else if(!flmg.isDirectory(selected_list_item) && !handler.isMultiSelected()) {
         	menu.setHeaderTitle("File Operations");
     		menu.add(0, F_MENU_DELETE, 0, "Delete File");
     		menu.add(0, F_MENU_RENAME, 0, "Rename File");
@@ -676,7 +680,7 @@ public final class Main extends ListActivity {
     		
     	} else if(keycode == KeyEvent.KEYCODE_BACK && use_back_key && !current.equals("/")) {
     		if(handler.isMultiSelected()) {
-    			table.killMultiSelect();
+    			table.killMultiSelect(true);
     			Toast.makeText(Main.this, "Multi-select is now off", Toast.LENGTH_SHORT).show();
     		}
     		

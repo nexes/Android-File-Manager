@@ -1,6 +1,6 @@
 /*
     Open Manager, an open source file manager for the Android system
-    Copyright (C) 2009, 2010  Joe Berria <nexesdevelopment@gmail.com>
+    Copyright (C) 2009, 2010, 2011  Joe Berria <nexesdevelopment@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,8 +19,6 @@
 package com.nexes.manager;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.ArrayList;
 
 import android.net.Uri;
@@ -43,7 +41,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.util.Log;
 
 /**
  * This class sits between the Main activity and the FileManager class. 
@@ -75,7 +72,6 @@ public class EventHandler implements OnClickListener {
 	private static final int ZIP_TYPE =			0x04;
 	private static final int DELETE_TYPE = 		0x05;
 	private static final int MANAGE_DIALOG =	 0x06;
-	private static final int MULTISELECT_DIAlOG = 0x07;
 	
 	private final Context context;
 	private final FileManager file_mg;
@@ -88,41 +84,8 @@ public class EventHandler implements OnClickListener {
 
 	private TextView path_label;
 	private TextView info_label;
-	
-	/*
-	 * The comparator object that is passed into Arrays.sort method
-	 * to Sort alphabetical. This can be better implemented.
-	 */
-	private static final Comparator alph = new Comparator<String>() {
-		@Override
-		public int compare(String arg0, String arg1) {
-			return arg0.toLowerCase().compareTo(arg1.toLowerCase());
-		}
-	};
-	
-	/*
-	 * The comparator object that is passed into the Arrays.sort method
-	 * to sort by type. If IndexOutOfBoundsException is caught, then this returns
-	 * a zero as it is a directory. This can be better implemented.
-	 */
-	private static final Comparator type = new Comparator<String>() {
-		@Override
-		public int compare(String arg0, String arg1) {
-			String ext = null;
-			String ext2 = null;
-			
-			try {
-				ext = arg0.substring(arg0.lastIndexOf(".") + 1, arg0.length());
-				ext2 = arg1.substring(arg1.lastIndexOf(".") + 1, arg1.length());
-				
-			} catch (IndexOutOfBoundsException e) {
-				return 0;
-			}
-			
-			return ext.compareTo(ext2);
-		}
-	};
 
+	
 	/**
 	 * Creates an EventHandler object. This object is used to communicate
 	 * most work from the Main activity to the FileManager class.
@@ -159,6 +122,14 @@ public class EventHandler implements OnClickListener {
 	public void setUpdateLabel(TextView path, TextView label) {
 		path_label = path;
 		info_label = label;
+	}
+	
+	/**
+	 * 
+	 * @param color
+	 */
+	public void setTextColor(int color) {
+		this.color = color;
 	}
 	
 	/**
@@ -269,26 +240,24 @@ public class EventHandler implements OnClickListener {
 	 */
 	@Override
 	public void onClick(View v) {
-		LinearLayout hidden_lay;
 		
 		switch(v.getId()) {
-			case R.id.back_button:
+		
+			case R.id.back_button:			
 				if (file_mg.getCurrentDir() != "/") {
 					if(multi_select_flag) {
-						delegate.killMultiSelect();
-						Toast.makeText(context, "Multi-select is now off", 
-										Toast.LENGTH_SHORT).show();
+						delegate.killMultiSelect(true);
+						Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
 					}
 					updateDirectory(file_mg.getPreviousDir());
 					path_label.setText(file_mg.getCurrentDir());
 				}
 				break;
 			
-			case R.id.home_button:
+			case R.id.home_button:		
 				if(multi_select_flag) {
-					delegate.killMultiSelect();
-					Toast.makeText(context, "Multi-select is now off", 
-										Toast.LENGTH_SHORT).show();
+					delegate.killMultiSelect(true);
+					Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
 				}
 				updateDirectory(file_mg.getHomeDir());
 				if(path_label != null)
@@ -310,29 +279,29 @@ public class EventHandler implements OnClickListener {
 				display_dialog(MANAGE_DIALOG);
 				break;
 				
-			case R.id.multiselect_button:
-				LinearLayout hidden = (LinearLayout)((Activity) context).
-										findViewById(R.id.hidden_buttons);
+			case R.id.multiselect_button:			
 				if(multi_select_flag) {
-					multi_select_flag = false;
-					delegate.clearMultiPosition();
-					
-					if(multiselect_data != null && !multiselect_data.isEmpty())
-						multiselect_data.clear();
-					
-					hidden.setVisibility(LinearLayout.GONE);
+					delegate.killMultiSelect(true);				
 					
 				} else {
+					LinearLayout hidden_lay = 
+						(LinearLayout)((Activity) context).findViewById(R.id.hidden_buttons);
+					
 					multi_select_flag = true;
-					hidden.setVisibility(LinearLayout.VISIBLE);
+					hidden_lay.setVisibility(LinearLayout.VISIBLE);
 				}
 				break;
 			
-			/* three hidden buttons for multiselect*/
+			/* 
+			 * three hidden buttons for multiselect
+			 */
 			case R.id.hidden_attach:
-				hidden_lay = (LinearLayout)((Activity) context).
-										findViewById(R.id.hidden_buttons);
-				hidden_lay.setVisibility(LinearLayout.GONE);
+							
+				/* check if user selected objects before going further */
+				if(multiselect_data.isEmpty() || multiselect_data == null) {
+					delegate.killMultiSelect(true);
+					break;
+				}
 				
 				ArrayList<Uri> uris = new ArrayList<Uri>();
 				int length = multiselect_data.size();
@@ -352,22 +321,30 @@ public class EventHandler implements OnClickListener {
     			context.startActivity(Intent.createChooser(mail_int, 
     													   "Email using..."));
     			
-    			multiselect_data.clear();
+    			delegate.killMultiSelect(true);
 				break;
 				
 			case R.id.hidden_copy:
-				hidden_lay = (LinearLayout)((Activity) context).
-										findViewById(R.id.hidden_buttons);
-				hidden_lay.setVisibility(LinearLayout.GONE);
+				
+				/* check if user selected objects before going further */
+				if(multiselect_data.isEmpty() || multiselect_data == null) {
+					delegate.killMultiSelect(true);
+					break;
+				}
 				
 				info_label.setText("Holding " + multiselect_data.size() + 
 								   " file(s) to be copied");
+				
+				delegate.killMultiSelect(false);
 				break;
 				
 			case R.id.hidden_delete:
-				hidden_lay = (LinearLayout)((Activity) context).
-										findViewById(R.id.hidden_buttons);
-				hidden_lay.setVisibility(LinearLayout.GONE);
+				
+				/* check if user selected objects before going further */
+				if(multiselect_data.isEmpty() || multiselect_data == null) {
+					delegate.killMultiSelect(true);
+					break;
+				}
 
 				String[] data = new String[multiselect_data.size()];
 				int at = 0;
@@ -376,13 +353,9 @@ public class EventHandler implements OnClickListener {
 					data[at++] = string;
 				
 				new BackgroundWork(DELETE_TYPE).execute(data);
-				multiselect_data.clear();
+				delegate.killMultiSelect(true);
 				break;
 		}
-	}
-	
-	public void setTextColor(int color) {
-		this.color = color;
 	}
 	
 	/**
@@ -397,50 +370,6 @@ public class EventHandler implements OnClickListener {
 			return null;
 		
 		return data_source.get(position);
-	}
-	
-	/**
-	 * Sort the contents of the dir alphabetically. This method
-	 * will sort and then call the update method to update the gui so
-	 * you dont have to. calling this method will update the list in 
-	 * Main activity.
-	 */
-	public void sortAlphabetical() {
-		ArrayList<String> list;
-		Object[] t = data_source.toArray();
-		
-		Arrays.sort(t, alph);
-		list = new ArrayList<String>();
-		
-		for (Object a : t){
-			list.add((String)a);
-		}
-		
-		updateDirectory(list);
-	}
-	
-	/**
-	 * Sort the contents of the directory by type, directory will be listed first.
-	 * This method will sort and then call the update method to update 
-	 * the GUI so you don't have to. calling this method will update the 
-	 * list in Main activity.
-	 */
-	public void sortByType() {
-		ArrayList<String> list;
-		Object[] t = data_source.toArray();
-		String dir = file_mg.getCurrentDir();
-		
-		Arrays.sort(t, type);
-		list = new ArrayList<String>();
-		
-		for (Object a : t){
-			if(new File(dir + "/" + (String)a).isDirectory())
-				list.add(0, (String)a);
-			else
-				list.add((String)a);
-		}
-		
-		updateDirectory(list);
 	}
 
 	/**
@@ -506,14 +435,6 @@ public class EventHandler implements OnClickListener {
     			break;
     	}
 	}
-/*    
-	private void add_multiSelect_file(String src) {
-		if(multiselect_data == null)
-			multiselect_data = new ArrayList<String>();
-		
-		multiselect_data.add(src);
-	}
-*/	
 	
 	private static class ViewHolder {
 		TextView topView;
@@ -538,6 +459,7 @@ public class EventHandler implements OnClickListener {
     	private String display_size;
     	private String dir_name = "/sdcard";
     	private ArrayList<Integer> positions;
+    	private LinearLayout hidden_layout;
     	private ThumbnailCreator thumbnail;
     	
     	public TableRow() {
@@ -568,24 +490,28 @@ public class EventHandler implements OnClickListener {
     		notifyDataSetChanged();
     	}
    	
-    	public void clearMultiPosition() {
-    		if(positions != null && !positions.isEmpty())
-    			positions.clear();
-    		
-    		notifyDataSetChanged();
-    	}
-    	
-    	/*
-    	 * this will turn off multi-select
+    	/**
+    	 * This will turn off multi-select and hide the multi-select buttons at the
+    	 * bottom of the view. 
+    	 * 
+    	 * @param clearData if this is true any file/folder the user selected for multi-select
+    	 * 					will be cleared. If false, the data will be kept for later use. Note:
+    	 * 					multi-select copy will usually be the only one to pass true, so we can
+    	 * 					later paste it to another folder.
     	 */
-    	public void killMultiSelect() {
+    	public void killMultiSelect(boolean clearData) {
+    		hidden_layout = (LinearLayout)((Activity)context).findViewById(R.id.hidden_buttons);
+    		hidden_layout.setVisibility(LinearLayout.GONE);
     		multi_select_flag = false;
     		
     		if(positions != null && !positions.isEmpty())
     			positions.clear();
     		
-    		if(multiselect_data != null && !multiselect_data.isEmpty())
-    			multiselect_data.clear();
+    		if(clearData)
+    			if(multiselect_data != null && !multiselect_data.isEmpty())
+    				multiselect_data.clear();
+    		
+    		notifyDataSetChanged();
     	}
     	
     	public String getFilePermissions(File file) {

@@ -1,6 +1,6 @@
 /*
     Open Manager, an open source file manager for the Android system
-    Copyright (C) 2009, 2010  Joe Berria <nexesdevelopment@gmail.com>
+    Copyright (C) 2009, 2010, 2011  Joe Berria <nexesdevelopment@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 package com.nexes.manager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Stack;
 import java.io.File;
 import java.io.BufferedInputStream;
@@ -49,9 +51,13 @@ import android.util.Log;
  *
  */
 public class FileManager {
-	private static final int BUFFER = 2048;
+	private static final int BUFFER = 		2048;
+	private static final int SORT_NONE = 	0;
+	private static final int SORT_ALPHA = 	1;
+	private static final int SORT_TYPE = 	2;
 	
 	private boolean show_hidden = false;
+	private int sort_type = SORT_ALPHA;
 	private double dir_size = 0;
 	private Stack<String> path_stack;
 	private ArrayList<String> dir_content;
@@ -97,6 +103,10 @@ public class FileManager {
 	 */
 	public void setShowHiddenFiles(boolean choice) {
 		show_hidden = choice;
+	}
+	
+	public void setSortType(int type) {
+		sort_type = type;
 	}
 	
 	/**
@@ -472,7 +482,38 @@ public class FileManager {
 		return dir_size;
 	}
 	
-	/*
+	
+	private static final Comparator alph = new Comparator<String>() {
+		@Override
+		public int compare(String arg0, String arg1) {
+			return arg0.toLowerCase().compareTo(arg1.toLowerCase());
+		}
+	};
+	
+	private static final Comparator type = new Comparator<String>() {
+		@Override
+		public int compare(String arg0, String arg1) {
+			String ext = null;
+			String ext2 = null;
+			
+			try {
+				ext = arg0.substring(arg0.lastIndexOf(".") + 1, arg0.length());
+				ext2 = arg1.substring(arg1.lastIndexOf(".") + 1, arg1.length());
+				
+			} catch (IndexOutOfBoundsException e) {
+				return 0;
+			}
+			
+			return ext.compareTo(ext2);
+		}
+	};
+	
+	/* (non-Javadoc)
+	 * this function will take the string from the top of the directory stack
+	 * and list all files/folders that are in it and return that list so 
+	 * it can be displayed. Since this function is called every time we need
+	 * to update the the list of files to be shown to the user, this is where 
+	 * we do our sorting (by type, alphabetical, etc).
 	 * 
 	 * @return
 	 */
@@ -486,14 +527,49 @@ public class FileManager {
 		if(file.exists() && file.canRead()) {
 			String[] list = file.list();
 			int len = list.length;
-						
+			
+			/* add files/folder to arraylist depending on hidden status */
 			for (int i = 0; i < len; i++) {
 				if(!show_hidden) {
 					if(list[i].toString().charAt(0) != '.')
 						dir_content.add(list[i]);
+					
 				} else {
 					dir_content.add(list[i]);
 				}
+			}
+			
+			/* sort the arraylist that was made from above for loop */
+			switch(sort_type) {
+				case SORT_NONE:
+					//no sorting needed
+					break;
+					
+				case SORT_TYPE:
+					Object[] t = dir_content.toArray();
+					String dir = path_stack.peek();
+					
+					Arrays.sort(t, type);
+					dir_content.clear();
+					
+					for (Object a : t){
+						if(new File(dir + "/" + (String)a).isDirectory())
+							dir_content.add(0, (String)a);
+						else
+							dir_content.add((String)a);
+					}
+					break;
+					
+				case SORT_ALPHA:
+					Object[] tt = dir_content.toArray();
+					dir_content.clear();
+					
+					Arrays.sort(tt, alph);
+					
+					for (Object a : tt){
+						dir_content.add((String)a);
+					}
+					break;
 			}
 				
 		} else {
