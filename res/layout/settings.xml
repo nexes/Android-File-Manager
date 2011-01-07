@@ -60,10 +60,10 @@
 			</LinearLayout>
 			<ImageButton
 				android:id="@+id/setting_color_button"
-				android:src="@drawable/color"
+				android:src="@drawable/more"
 				android:background="#ff000000"
 				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
+				android:layout_height="fill_parent"
 				android:layout_gravity="right"
 				android:padding="3dp" />
 		</TableRow>
@@ -167,7 +167,13 @@
 					android:textColor="@color/offWhite"
 					android:text="Choose how to sort files and folders" />
 			</LinearLayout>
-			
+			<ImageButton
+				android:id="@+id/settings_sort_bt"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent"
+				android:layout_gravity="right"
+				android:background="#ff000000"
+				android:src="@drawable/more" />			
 		</TableRow>
 		
 	</TableLayout>
