@@ -21,21 +21,26 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
-	android:background="@color/black"
-	>
+	android:background="@color/black" >
 	<TableLayout
 		android:orientation="vertical"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
 		android:stretchColumns="*"
-		android:shrinkColumns="*"
-		>
+		android:shrinkColumns="*" >
+		<TextView
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:textColor="@color/offWhite"
+			android:text="Display"
+			android:textStyle="bold"
+			android:background="@color/darkGray" />
+			
 		<TableRow>
 			<LinearLayout
 				android:orientation="vertical"
 				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				>
+				android:layout_height="wrap_content">
 				<TextView
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
@@ -43,7 +48,7 @@
 					android:textSize="18sp"
 					android:textColor="@color/white"
 					android:textStyle="bold"
-					android:text="Text color"/>
+					android:text="Text color" />
 				<TextView
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
@@ -51,7 +56,7 @@
 					android:paddingTop="3dip"
 					android:paddingLeft="8dip"
 					android:textColor="@color/offWhite"
-					android:text="Change the preferred text color"/>
+					android:text="Change the preferred text color" />
 			</LinearLayout>
 			<ImageButton
 				android:id="@+id/setting_color_button"
@@ -60,18 +65,18 @@
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
 				android:layout_gravity="right"
-				android:padding="3dp"/>
+				android:padding="3dp" />
 		</TableRow>
 			<View
 				android:layout_width="fill_parent"
 				android:layout_height="3dp"
-				android:background="@color/darkGray"/>
+				android:background="@color/darkGray" />
+				
 		<TableRow>
 			<LinearLayout
 				android:orientation="vertical"
 				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				>
+				android:layout_height="wrap_content" >
 				<TextView
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
@@ -79,7 +84,7 @@
 					android:textSize="18sp"
 					android:textColor="@color/white"
 					android:textStyle="bold"
-					android:text="Show hidden files/folders"/>
+					android:text="Show hidden files/folders" />
 				<TextView
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
@@ -87,7 +92,7 @@
 					android:paddingTop="3dip"
 					android:paddingLeft="8dip"
 					android:textColor="@color/offWhite"
-					android:text="Display files and folders that begin with a (period)"/>
+					android:text="Display files and folders that begin with a (period)" />
 			</LinearLayout>
 			<CheckBox
 				android:id="@+id/setting_hidden_box"
@@ -95,19 +100,18 @@
 				android:layout_height="wrap_content"
 				android:layout_gravity="right"
 				android:padding="3dp"
-				android:checked="false"/>
+				android:checked="false" />
 		</TableRow>
 			<View
 				android:layout_width="fill_parent"
 				android:layout_height="3dp"
-				android:background="@color/darkGray"/>
-<!-- 
+				android:background="@color/darkGray" /> 
+				
 		<TableRow>
 			<LinearLayout
 				android:orientation="vertical"
 				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				>
+				android:layout_height="wrap_content" >
 				<TextView
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
@@ -115,7 +119,7 @@
 					android:textSize="18sp"
 					android:textColor="@color/white"
 					android:textStyle="bold"
-					android:text="Show Image Preview"/>
+					android:text="Show Image Preview" />
 				<TextView
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
@@ -123,7 +127,7 @@
 					android:paddingTop="3dip"
 					android:paddingLeft="8dip"
 					android:textColor="@color/offWhite"
-					android:text="Display a thumbnail for image files"/>
+					android:text="Display a thumbnail for image files" />
 			</LinearLayout>
 			<CheckBox
 				android:id="@+id/setting_thumbnail_box"
@@ -131,12 +135,40 @@
 				android:layout_height="wrap_content"
 				android:layout_gravity="right"
 				android:padding="3dp"
-				android:checked="false"/>
+				android:checked="false" />
 		</TableRow>
-			<View
-				android:layout_width="fill_parent"
-				android:layout_height="3dp"
-				android:background="@color/darkGray"/>
--->			
+		<TextView
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:textColor="@color/offWhite"
+			android:textStyle="bold"
+			android:text="Sorting" 
+			android:background="@color/darkGray" />
+			
+		<TableRow>
+			<LinearLayout
+				android:orientation="vertical"
+				android:layout_height="wrap_content"
+				android:layout_width="fill_parent" >
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:paddingLeft="3dip"
+					android:textSize="18sp"
+					android:textColor="@color/white"
+					android:textStyle="bold"
+					android:text="Sorting type" />
+				<TextView
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:singleLine="false"
+					android:paddingTop="3dip"
+					android:paddingLeft="8dip"
+					android:textColor="@color/offWhite"
+					android:text="Choose how to sort files and folders" />
+			</LinearLayout>
+			
+		</TableRow>
+		
 	</TableLayout>
 </ScrollView>
