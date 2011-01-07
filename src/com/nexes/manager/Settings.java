@@ -33,13 +33,14 @@ import android.widget.CompoundButton;
 //import android.util.Log;
 
 public class Settings extends Activity {
-	private CheckBox hidden_bx;
-	private CheckBox thumbnail_bx;
-	private ImageButton color_bt;
+//	private CheckBox hidden_bx;
+//	private CheckBox thumbnail_bx;
+//	private ImageButton color_bt;
 	
 	private boolean hidden_changed = false;
 	private boolean color_changed = false;
 	private boolean thumbnail_changed = false;
+	private boolean sort_changed = false;
 	
 	private boolean hidden_state;
 	private boolean thumbnail_state;
@@ -57,21 +58,23 @@ public class Settings extends Activity {
 		thumbnail_state = i.getExtras().getBoolean("THUMBNAIL");
 		color_state = i.getExtras().getInt("COLOR");
 		sort_state = i.getExtras().getInt("SORT");
-		
-		hidden_bx = (CheckBox)findViewById(R.id.setting_hidden_box);
-		thumbnail_bx = (CheckBox)findViewById(R.id.setting_thumbnail_box);
-		color_bt = (ImageButton)findViewById(R.id.setting_color_button);
+				
+		final CheckBox hidden_bx = (CheckBox)findViewById(R.id.setting_hidden_box);
+		final CheckBox thumbnail_bx = (CheckBox)findViewById(R.id.setting_thumbnail_box);
+		final ImageButton color_bt = (ImageButton)findViewById(R.id.setting_color_button);
+		final ImageButton sort_bt = (ImageButton)findViewById(R.id.settings_sort_button);
 
 		hidden_bx.setChecked(hidden_state);
 		thumbnail_bx.setChecked(thumbnail_state);
 		
 		color_bt.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View view) {
-				AlertDialog.Builder builder;
+				AlertDialog.Builder builder = new AlertDialog.Builder(Settings.this);
 				AlertDialog dialog;
 				CharSequence[] options = {"White", "Green", "Red", "Blue", "Cyan",
 									      "Yellow", "Magenta"};
-				builder = new AlertDialog.Builder(Settings.this);
+				
 				builder.setTitle("Change text color");
 				builder.setIcon(R.drawable.color);
 				builder.setItems(options, new DialogInterface.OnClickListener() {
@@ -136,7 +139,41 @@ public class Settings extends Activity {
 			}
 		});
 		
-		
+		sort_bt.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(Settings.this);
+    			CharSequence[] options = {"None", "Alphabetical", "Type"};
+    			
+    			builder.setTitle("Sort by...");
+    			builder.setItems(options, new DialogInterface.OnClickListener() {					
+					@Override
+					public void onClick(DialogInterface dialog, int index) {
+						switch(index) {
+						case 0:
+							sort_state = 0;
+							sort_changed = true;
+							is.putExtra("SORT", sort_state);
+							break;
+							
+						case 1:
+							sort_state = 1;
+							sort_changed = true;
+							is.putExtra("SORT", sort_state);
+							break;
+							
+						case 2:
+							sort_state = 2;
+							sort_changed = true;
+							is.putExtra("SORT", sort_state);
+							break;
+						}
+					}
+				});
+    			
+    			builder.create().show();
+			}
+		});
 	}
 	
 	@Override
@@ -151,6 +188,9 @@ public class Settings extends Activity {
 		
 		if(!thumbnail_changed)
 			is.putExtra("THUMBNAIL", thumbnail_state);
+		
+		if(!sort_changed)
+			is.putExtra("SORT", sort_state);
 			
 		setResult(RESULT_CANCELED, is);
 	}

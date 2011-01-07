@@ -69,17 +69,18 @@ import android.widget.Toast;
  *
  */
 public final class Main extends ListActivity {
-	public static final String PREFS_NAME = "ManagerPrefsFile";	//user preference file name
-	public static final String PREFS_HIDDEN = "hidden";
-	public static final String PREFS_COLOR = "color";
-	public static final String PREFS_THUMBNAIL = "thumbnail";
+	private static final String PREFS_NAME = "ManagerPrefsFile";	//user preference file name
+	private static final String PREFS_HIDDEN = "hidden";
+	private static final String PREFS_COLOR = "color";
+	private static final String PREFS_THUMBNAIL = "thumbnail";
+	private static final String PREFS_SORT = "sort";
 	
 	private static final int MENU_MKDIR =   0x00;			//option menu id
 	private static final int MENU_SETTING = 0x01;			//option menu id
 	private static final int MENU_SEARCH =  0x02;			//option menu id
 	private static final int MENU_SPACE =   0x03;			//option menu id
 	private static final int MENU_QUIT = 	0x04;			//option menu id
-	private static final int MENU_SORT =	0x05;			//option menu id
+//	private static final int MENU_SORT =	0x05;			//option menu id
 	private static final int SEARCH_B = 	0x09;
 	
 	private static final int D_MENU_DELETE = 0x05;			//context menu id
@@ -118,9 +119,11 @@ public final class Main extends ListActivity {
         boolean hide = settings.getBoolean(PREFS_HIDDEN, false);
         boolean thumb = settings.getBoolean(PREFS_THUMBNAIL, true);
         int color = settings.getInt(PREFS_COLOR, -1);
+        int sort = settings.getInt(PREFS_SORT, 0);
         
         flmg = new FileManager();
         flmg.setShowHiddenFiles(hide);
+        flmg.setSortType(sort);
         
         handler = new EventHandler(Main.this, flmg);
         handler.setTextColor(color);
@@ -339,6 +342,7 @@ public final class Main extends ListActivity {
     	boolean check;
     	boolean thumbnail;
     	int color;
+    	int sort;
     	
     	/* resultCode must equal RESULT_CANCELED because the only way
     	 * out of that activity is pressing the back button on the phone
@@ -349,13 +353,16 @@ public final class Main extends ListActivity {
     		check = data.getBooleanExtra("HIDDEN", false);
     		thumbnail = data.getBooleanExtra("THUMBNAIL", true);
     		color = data.getIntExtra("COLOR", -1);
+    		sort = data.getIntExtra("SORT", 0);
     		
     		editor.putBoolean(PREFS_HIDDEN, check);
     		editor.putBoolean(PREFS_THUMBNAIL, thumbnail);
     		editor.putInt(PREFS_COLOR, color);
+    		editor.putInt(PREFS_SORT, sort);
     		editor.commit();
     		  		
     		flmg.setShowHiddenFiles(check);
+    		flmg.setSortType(sort);
     		handler.setTextColor(color);
     		handler.setShowThumbnails(thumbnail);
     		handler.updateDirectory(flmg.getNextDir(flmg.getCurrentDir(), true));
@@ -371,7 +378,7 @@ public final class Main extends ListActivity {
     		/* free space will be implemented at a later time */
 //    	menu.add(0, MENU_SPACE, 0, "Free space").setIcon(R.drawable.space);
     	menu.add(0, MENU_SETTING, 0, "Settings").setIcon(R.drawable.setting);
-    	menu.add(0, MENU_SORT, 0, "Sort").setIcon(R.drawable.filter);
+//    	menu.add(0, MENU_SORT, 0, "Sort").setIcon(R.drawable.filter);
     	menu.add(0, MENU_QUIT, 0, "Quit").setIcon(R.drawable.logout);
     	
     	return true;
@@ -396,10 +403,11 @@ public final class Main extends ListActivity {
     			settings_int.putExtra("HIDDEN", settings.getBoolean(PREFS_HIDDEN, false));
     			settings_int.putExtra("THUMBNAIL", settings.getBoolean(PREFS_THUMBNAIL, true));
     			settings_int.putExtra("COLOR", settings.getInt(PREFS_COLOR, -1));
+    			settings_int.putExtra("SORT", settings.getInt(PREFS_SORT, 0));
     			
     			startActivityForResult(settings_int, SETTING_REQ);
     			return true;
-    			
+ /*   			
     		case MENU_SORT:
     			AlertDialog.Builder builder = new AlertDialog.Builder(this);
     			CharSequence[] options = {"Alphabetical", "By type"};
@@ -423,7 +431,7 @@ public final class Main extends ListActivity {
     			
     			builder.create().show();
     			return true;
-    			
+ */   			
     		case MENU_QUIT:
     			finish();
     			return true;
