@@ -72,6 +72,7 @@ public final class Main extends ListActivity {
 	public static final String PREFS_NAME = "ManagerPrefsFile";	//user preference file name
 	public static final String PREFS_HIDDEN = "hidden";
 	public static final String PREFS_COLOR = "color";
+	public static final String PREFS_THUMBNAIL = "thumbnail";
 	
 	private static final int MENU_MKDIR =   0x00;			//option menu id
 	private static final int MENU_SETTING = 0x01;			//option menu id
@@ -115,6 +116,7 @@ public final class Main extends ListActivity {
         /*read settings*/
         settings = getSharedPreferences(PREFS_NAME, 0);
         boolean hide = settings.getBoolean(PREFS_HIDDEN, false);
+        boolean thumb = settings.getBoolean(PREFS_THUMBNAIL, true);
         int color = settings.getInt(PREFS_COLOR, -1);
         
         flmg = new FileManager();
@@ -122,6 +124,7 @@ public final class Main extends ListActivity {
         
         handler = new EventHandler(Main.this, flmg);
         handler.setTextColor(color);
+        handler.setShowThumbnails(thumb);
         table = handler.new TableRow();
         
         /*sets the ListAdapter for our ListActivity and
@@ -305,7 +308,7 @@ public final class Main extends ListActivity {
 	    		if(file.exists()) {
 	    			Intent htmlIntent = new Intent();
 	    			htmlIntent.setAction(android.content.Intent.ACTION_VIEW);
-	    			htmlIntent.setDataAndType(Uri.fromFile(file), "text/*");
+	    			htmlIntent.setDataAndType(Uri.fromFile(file), "text/html");
 	    			try {
 	    				startActivity(htmlIntent);
 	    			} catch(ActivityNotFoundException e) {
@@ -334,6 +337,7 @@ public final class Main extends ListActivity {
     	
     	SharedPreferences.Editor editor = settings.edit();
     	boolean check;
+    	boolean thumbnail;
     	int color;
     	
     	/* resultCode must equal RESULT_CANCELED because the only way
@@ -343,14 +347,17 @@ public final class Main extends ListActivity {
     	if(requestCode == SETTING_REQ && resultCode == RESULT_CANCELED) {
     		//save the information we get from settings activity
     		check = data.getBooleanExtra("HIDDEN", false);
+    		thumbnail = data.getBooleanExtra("THUMBNAIL", true);
     		color = data.getIntExtra("COLOR", -1);
     		
     		editor.putBoolean(PREFS_HIDDEN, check);
+    		editor.putBoolean(PREFS_THUMBNAIL, thumbnail);
     		editor.putInt(PREFS_COLOR, color);
     		editor.commit();
-    		
+    		  		
     		flmg.setShowHiddenFiles(check);
     		handler.setTextColor(color);
+    		handler.setShowThumbnails(thumbnail);
     		handler.updateDirectory(flmg.getNextDir(flmg.getCurrentDir(), true));
     	}
     }
@@ -386,7 +393,8 @@ public final class Main extends ListActivity {
     			
     		case MENU_SETTING:
     			Intent settings_int = new Intent(this, Settings.class);
-    			settings_int.putExtra("HIDDEN", settings.getBoolean("hidden", false));
+    			settings_int.putExtra("HIDDEN", settings.getBoolean(PREFS_HIDDEN, false));
+    			settings_int.putExtra("THUMBNAIL", settings.getBoolean(PREFS_THUMBNAIL, true));
     			settings_int.putExtra("COLOR", settings.getInt(PREFS_COLOR, -1));
     			
     			startActivityForResult(settings_int, SETTING_REQ);

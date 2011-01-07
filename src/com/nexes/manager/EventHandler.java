@@ -41,6 +41,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+//import android.util.Log;
 
 /**
  * This class sits between the Main activity and the FileManager class. 
@@ -77,11 +78,11 @@ public class EventHandler implements OnClickListener {
 	private final FileManager file_mg;
 	private TableRow delegate;
 	private boolean multi_select_flag = false;
+	private boolean thumbnail_flag = true;
 	private int color = Color.WHITE;
 	
-	//the data used to feed info into the array adapter and when multi-select is on
+	//the list used to feed info into the array adapter and when multi-select is on
 	private ArrayList<String> data_source, multiselect_data;
-
 	private TextView path_label;
 	private TextView info_label;
 
@@ -130,6 +131,16 @@ public class EventHandler implements OnClickListener {
 	 */
 	public void setTextColor(int color) {
 		this.color = color;
+	}
+	
+	/**
+	 * Set this true and thumbnails will be used as the icon for image files. False will
+	 * show a default image. 
+	 * 
+	 * @param show
+	 */
+	public void setShowThumbnails(boolean show) {
+		thumbnail_flag = show;
 	}
 	
 	/**
@@ -556,7 +567,7 @@ public class EventHandler implements OnClickListener {
     		 * if the user has changed directories. This way the cache wont show
     		 * a wrong thumbnail image for the new image file 
     		 */
-    		if(!dir_name.equals(temp)) {
+    		if(!dir_name.equals(temp) && thumbnail_flag) {
     			thumbnail.clearBitmapCache();
     			dir_name = temp;
     		}    			
@@ -593,16 +604,21 @@ public class EventHandler implements OnClickListener {
     					   sub_ext.equalsIgnoreCase("gif") ||
     					   sub_ext.equalsIgnoreCase("tiff")) {
     				
-    				Bitmap thumb = thumbnail.hasBitmapCached(position);
-    				
-    				if(thumb == null) {  					
-    					final Handler mHandler = new Handler();
-   						thumbnail.setBitmapToImageView(file.getPath(), 
-   													   mHandler, 
-   													   holder.icon);
-   						
+    				if(thumbnail_flag) {
+	    				Bitmap thumb = thumbnail.hasBitmapCached(position);
+	    				
+	    				if(thumb == null) {  					
+	    					final Handler mHandler = new Handler();
+	   						thumbnail.setBitmapToImageView(file.getPath(), 
+	   													   mHandler, 
+	   													   holder.icon);
+	   						
+	    				} else {
+	    					holder.icon.setImageBitmap(thumb);
+	    				}
+	    				
     				} else {
-    					holder.icon.setImageBitmap(thumb);
+    					holder.icon.setImageResource(R.drawable.image);
     				}
     							
     			} else if (sub_ext.equalsIgnoreCase("zip")  || 

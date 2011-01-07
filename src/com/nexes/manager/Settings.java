@@ -1,6 +1,6 @@
 /*
     Open Manager, an open source file manager for the Android system
-    Copyright (C) 2009, 2010  Joe Berria <nexesdevelopment@gmail.com>
+    Copyright (C) 2009, 2010, 2011  Joe Berria <nexesdevelopment@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,12 +34,17 @@ import android.widget.CompoundButton;
 
 public class Settings extends Activity {
 	private CheckBox hidden_bx;
+	private CheckBox thumbnail_bx;
 	private ImageButton color_bt;
 	
-	private boolean hidden_state;
-	private boolean state_changed = false;
+	private boolean hidden_changed = false;
 	private boolean color_changed = false;
+	private boolean thumbnail_changed = false;
+	
+	private boolean hidden_state;
+	private boolean thumbnail_state;
 	private int color_state;
+	private int sort_state;
 	private Intent is = new Intent();
 	
 	@Override
@@ -49,15 +54,16 @@ public class Settings extends Activity {
 		
 		Intent i = getIntent();
 		hidden_state = i.getExtras().getBoolean("HIDDEN");
+		thumbnail_state = i.getExtras().getBoolean("THUMBNAIL");
 		color_state = i.getExtras().getInt("COLOR");
+		sort_state = i.getExtras().getInt("SORT");
 		
 		hidden_bx = (CheckBox)findViewById(R.id.setting_hidden_box);
+		thumbnail_bx = (CheckBox)findViewById(R.id.setting_thumbnail_box);
 		color_bt = (ImageButton)findViewById(R.id.setting_color_button);
 
-		if(hidden_state)
-			hidden_bx.setChecked(true);
-		else
-			hidden_bx.setChecked(false);
+		hidden_bx.setChecked(hidden_state);
+		thumbnail_bx.setChecked(thumbnail_state);
 		
 		color_bt.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
@@ -111,27 +117,40 @@ public class Settings extends Activity {
 		});
 		
 		hidden_bx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
 			public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
-				if(hidden_bx.isChecked())
-					hidden_state = true;
-				else
-					hidden_state = false;
+				hidden_state = hidden_bx.isChecked();
 				
 				is.putExtra("HIDDEN", hidden_state);
-				state_changed = true;
+				hidden_changed = true;
 			}
 		});
+		
+		thumbnail_bx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				thumbnail_state = thumbnail_bx.isChecked();
+				
+				is.putExtra("THUMBNAIL", thumbnail_state);
+				thumbnail_changed = true;
+			}
+		});
+		
+		
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
 		
-		if(!state_changed)
+		if(!hidden_changed)
 			is.putExtra("HIDDEN", hidden_state);
 		
 		if(!color_changed)
 			is.putExtra("COLOR", color_state);
+		
+		if(!thumbnail_changed)
+			is.putExtra("THUMBNAIL", thumbnail_state);
 			
 		setResult(RESULT_CANCELED, is);
 	}
