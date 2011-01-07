@@ -1,6 +1,6 @@
 /*
     Open Manager, an open source file manager for the Android system
-    Copyright (C) 2009, 2010  Joe Berria <nexesdevelopment@gmail.com>
+    Copyright (C) 2009, 2010, 2011  Joe Berria <nexesdevelopment@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,7 +50,8 @@ public class DirectoryInfo extends Activity {
 		total_label = (TextView)findViewById(R.id.total_size);
 		
 		/*make zip button visible and setup onclick logic to have
-		  zip button */
+		 * zip button 
+		 */
 		Button zip = (Button)findViewById(R.id.zip_button);
 		zip.setVisibility(Button.GONE);
 		
@@ -84,7 +85,7 @@ public class DirectoryInfo extends Activity {
 			int len = 0;
 			
 			size = flmg.getDirSize(vals[0]);
-			
+				
 			list = dir.listFiles();
 			if(list != null)
 				len = list.length;

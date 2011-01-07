@@ -105,6 +105,10 @@ public class FileManager {
 		show_hidden = choice;
 	}
 	
+	/**
+	 * 
+	 * @param type
+	 */
 	public void setSortType(int type) {
 		sort_type = type;
 	}
@@ -545,6 +549,17 @@ public class FileManager {
 					//no sorting needed
 					break;
 					
+				case SORT_ALPHA:
+					Object[] tt = dir_content.toArray();
+					dir_content.clear();
+					
+					Arrays.sort(tt, alph);
+					
+					for (Object a : tt){
+						dir_content.add((String)a);
+					}
+					break;
+					
 				case SORT_TYPE:
 					Object[] t = dir_content.toArray();
 					String dir = path_stack.peek();
@@ -557,17 +572,6 @@ public class FileManager {
 							dir_content.add(0, (String)a);
 						else
 							dir_content.add((String)a);
-					}
-					break;
-					
-				case SORT_ALPHA:
-					Object[] tt = dir_content.toArray();
-					dir_content.clear();
-					
-					Arrays.sort(tt, alph);
-					
-					for (Object a : tt){
-						dir_content.add((String)a);
 					}
 					break;
 			}

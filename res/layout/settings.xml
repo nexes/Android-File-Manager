@@ -28,6 +28,7 @@
 		android:layout_height="fill_parent"
 		android:stretchColumns="*"
 		android:shrinkColumns="*" >
+		
 		<TextView
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
@@ -35,6 +36,10 @@
 			android:text="Display"
 			android:textStyle="bold"
 			android:background="@color/darkGray" />
+		<View
+			android:layout_width="fill_parent"
+			android:layout_height="5dip"
+			android:background="@color/black" />
 			
 		<TableRow>
 			<LinearLayout
@@ -69,7 +74,7 @@
 		</TableRow>
 			<View
 				android:layout_width="fill_parent"
-				android:layout_height="3dp"
+				android:layout_height="3dip"
 				android:background="@color/darkGray" />
 				
 		<TableRow>
@@ -104,7 +109,7 @@
 		</TableRow>
 			<View
 				android:layout_width="fill_parent"
-				android:layout_height="3dp"
+				android:layout_height="3dip"
 				android:background="@color/darkGray" /> 
 				
 		<TableRow>
@@ -137,13 +142,22 @@
 				android:padding="3dp"
 				android:checked="false" />
 		</TableRow>
+		
+		<View
+			android:layout_width="fill_parent"
+			android:layout_height="5dip"
+			android:background="@color/black" />
 		<TextView
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:textColor="@color/offWhite"
 			android:textStyle="bold"
 			android:text="Sorting" 
-			android:background="@color/darkGray" />
+			android:background="@color/darkGray" />	
+		<View
+			android:layout_width="fill_parent"
+			android:layout_height="5dip"
+			android:background="@color/black" />
 			
 		<TableRow>
 			<LinearLayout
@@ -168,7 +182,7 @@
 					android:text="Choose how to sort files and folders" />
 			</LinearLayout>
 			<ImageButton
-				android:id="@+id/settings_sort_bt"
+				android:id="@+id/settings_sort_button"
 				android:layout_width="fill_parent"
 				android:layout_height="fill_parent"
 				android:layout_gravity="right"
