@@ -33,10 +33,6 @@ import android.widget.CompoundButton;
 //import android.util.Log;
 
 public class Settings extends Activity {
-//	private CheckBox hidden_bx;
-//	private CheckBox thumbnail_bx;
-//	private ImageButton color_bt;
-	
 	private boolean hidden_changed = false;
 	private boolean color_changed = false;
 	private boolean thumbnail_changed = false;
