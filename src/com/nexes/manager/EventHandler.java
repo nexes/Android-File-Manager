@@ -273,7 +273,8 @@ public class EventHandler implements OnClickListener {
 						Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
 					}
 					updateDirectory(file_mg.getPreviousDir());
-					path_label.setText(file_mg.getCurrentDir());
+					if(path_label != null)
+						path_label.setText(file_mg.getCurrentDir());
 				}
 				break;
 			

@@ -293,7 +293,13 @@ public final class Main extends ListActivity {
 		    		Intent pdfIntent = new Intent();
 		    		pdfIntent.setAction(android.content.Intent.ACTION_VIEW);
 		    		pdfIntent.setDataAndType(Uri.fromFile(file), "application/pdf");
-		    		startActivity(pdfIntent);
+		    		
+		    		try {
+		    			startActivity(pdfIntent);
+		    		} catch (ActivityNotFoundException e) {
+		    			Toast.makeText(this, "Sorry, couldn't find a pdf viewer", 
+								Toast.LENGTH_SHORT).show();
+		    		}
 	    		}
 	    	}
 	    	
@@ -303,8 +309,7 @@ public final class Main extends ListActivity {
 	    		if(file.exists()) {
 	    			Intent apkIntent = new Intent();
 	    			apkIntent.setAction(android.content.Intent.ACTION_VIEW);
-	    			apkIntent.setDataAndType(Uri.fromFile(file), 
-	    									 "application/vnd.android.package-archive");
+	    			apkIntent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
 	    			startActivity(apkIntent);
 	    		}
 	    	}
@@ -316,10 +321,11 @@ public final class Main extends ListActivity {
 	    			Intent htmlIntent = new Intent();
 	    			htmlIntent.setAction(android.content.Intent.ACTION_VIEW);
 	    			htmlIntent.setDataAndType(Uri.fromFile(file), "text/html");
+	    			
 	    			try {
 	    				startActivity(htmlIntent);
 	    			} catch(ActivityNotFoundException e) {
-	    				Toast.makeText(this, "Sorry, couldn't find a HTML view", 
+	    				Toast.makeText(this, "Sorry, couldn't find a HTML viewer", 
 	    									Toast.LENGTH_SHORT).show();
 	    			}
 	    		}

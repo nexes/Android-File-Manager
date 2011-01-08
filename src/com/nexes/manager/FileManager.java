@@ -403,13 +403,15 @@ public class FileManager {
 		else if(target.exists() && target.isDirectory() && target.canRead()) {
 			String[] file_list = target.list();
 			
-			if(file_list.length == 0) {
+			if(file_list != null && file_list.length == 0) {
 				target.delete();
 				return 0;
 				
-			} else {
+			} else if(file_list != null && file_list.length > 0) {
+				
 				for(int i = 0; i < file_list.length; i++) {
 					File temp_f = new File(target.getAbsolutePath() + "/" + file_list[i]);
+					
 					if(temp_f.isDirectory())
 						deleteTarget(temp_f.getAbsolutePath());
 					else if(temp_f.isFile())
