@@ -80,7 +80,6 @@ public final class Main extends ListActivity {
 	private static final int MENU_SEARCH =  0x02;			//option menu id
 	private static final int MENU_SPACE =   0x03;			//option menu id
 	private static final int MENU_QUIT = 	0x04;			//option menu id
-//	private static final int MENU_SORT =	0x05;			//option menu id
 	private static final int SEARCH_B = 	0x09;
 	
 	private static final int D_MENU_DELETE = 0x05;			//context menu id
@@ -89,6 +88,8 @@ public final class Main extends ListActivity {
 	private static final int D_MENU_PASTE =  0x08;			//context menu id
 	private static final int D_MENU_ZIP = 	 0x0e;			//context menu id
 	private static final int D_MENU_UNZIP =  0x0f;			//context menu id
+	private static final int D_MENU_MOVE = 	 0x30;			//context menu id
+	private static final int F_MENU_MOVE = 	 0x20;			//context menu id
 	private static final int F_MENU_DELETE = 0x0a;			//context menu id
 	private static final int F_MENU_RENAME = 0x0b;			//context menu id
 	private static final int F_MENU_ATTACH = 0x0c;			//context menu id
@@ -173,6 +174,9 @@ public final class Main extends ListActivity {
         
         Button delete = (Button)findViewById(R.id.hidden_delete);
         delete.setOnClickListener(handler);
+        
+        Button move = (Button)findViewById(R.id.hidden_move);
+        move.setOnClickListener(handler);
     }
 
 	/**
@@ -378,7 +382,6 @@ public final class Main extends ListActivity {
     		/* free space will be implemented at a later time */
 //    	menu.add(0, MENU_SPACE, 0, "Free space").setIcon(R.drawable.space);
     	menu.add(0, MENU_SETTING, 0, "Settings").setIcon(R.drawable.setting);
-//    	menu.add(0, MENU_SORT, 0, "Sort").setIcon(R.drawable.filter);
     	menu.add(0, MENU_QUIT, 0, "Quit").setIcon(R.drawable.logout);
     	
     	return true;
@@ -407,31 +410,7 @@ public final class Main extends ListActivity {
     			
     			startActivityForResult(settings_int, SETTING_REQ);
     			return true;
- /*   			
-    		case MENU_SORT:
-    			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    			CharSequence[] options = {"Alphabetical", "By type"};
     			
-    			builder.setTitle("Sort by...");
-    			builder.setItems(options, new DialogInterface.OnClickListener() {					
-					@Override
-					public void onClick(DialogInterface dialog, int index) {
-						switch(index) {
-						case 0:
-							flmg.setSortType(1);
-							handler.updateDirectory(flmg.getNextDir(flmg.getCurrentDir(), true));
-							break;
-						case 1:
-							flmg.setSortType(2);
-							handler.updateDirectory(flmg.getNextDir(flmg.getCurrentDir(), true));
-							break;
-						}
-					}
-				});
-    			
-    			builder.create().show();
-    			return true;
- */   			
     		case MENU_QUIT:
     			finish();
     			return true;
@@ -453,8 +432,10 @@ public final class Main extends ListActivity {
         	menu.add(0, D_MENU_DELETE, 0, "Delete Folder");
         	menu.add(0, D_MENU_RENAME, 0, "Rename Folder");
         	menu.add(0, D_MENU_COPY, 0, "Copy Folder");
+        	menu.add(0, D_MENU_MOVE, 0, "Move(Cut) Folder");
         	menu.add(0, D_MENU_ZIP, 0, "Zip Folder");
-        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(holding_file || multi_data);        	
+        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(holding_file || 
+        																 multi_data);
         	menu.add(0, D_MENU_UNZIP, 0, "Extract here").setEnabled(holding_zip);
     		
         /* is it a file and is multi-select turned off */
@@ -463,6 +444,7 @@ public final class Main extends ListActivity {
     		menu.add(0, F_MENU_DELETE, 0, "Delete File");
     		menu.add(0, F_MENU_RENAME, 0, "Rename File");
     		menu.add(0, F_MENU_COPY, 0, "Copy File");
+    		menu.add(0, F_MENU_MOVE, 0, "Move(Cut) File");
     		menu.add(0, F_MENU_ATTACH, 0, "Email File");
     	}	
     }
@@ -512,14 +494,21 @@ public final class Main extends ListActivity {
     			mail_int.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
     			startActivity(mail_int);
     			return true;
-    			
+    		
+    		case F_MENU_MOVE:
+    		case D_MENU_MOVE:
     		case F_MENU_COPY:
     		case D_MENU_COPY:
-    			copied_target = flmg.getCurrentDir() +"/"+ selected_list_item;
+    			if(item.getItemId() == F_MENU_MOVE || item.getItemId() == D_MENU_MOVE)
+    				handler.setDeleteAfterCopy(true);
+    			
     			holding_file = true;
-    			detail_label.setText("Waiting to paste file " + selected_list_item);
+    			
+    			copied_target = flmg.getCurrentDir() +"/"+ selected_list_item;
+    			detail_label.setText("Holding " + selected_list_item);
     			return true;
     			
+    		
     		case D_MENU_PASTE:
     			boolean multi_select = handler.hasMultiSelectData();
     			
@@ -529,9 +518,10 @@ public final class Main extends ListActivity {
     			} else if(holding_file && copied_target.length() > 1) {
     				
     				handler.copyFile(copied_target, flmg.getCurrentDir() +"/"+ selected_list_item);
-    				holding_file = false;
     				detail_label.setText("");
     			}
+    			    			   			
+    			holding_file = false;
     			return true;
     			
     		case D_MENU_ZIP:

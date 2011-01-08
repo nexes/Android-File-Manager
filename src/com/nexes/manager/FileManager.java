@@ -322,8 +322,8 @@ public class FileManager {
 		
 		try {
 			ZipOutputStream zip_out = new ZipOutputStream(
-					new BufferedOutputStream(
-					new FileOutputStream(_path + name + ".zip"), BUFFER));
+									  new BufferedOutputStream(
+									  new FileOutputStream(_path + name + ".zip"), BUFFER));
 			
 			for (int i = 0; i < len; i++)
 				zip_folder(new File(_path + list[i]), zip_out);
@@ -387,8 +387,9 @@ public class FileManager {
 	}
 	
 	/**
+	 * The full path name of the file to delete.
 	 * 
-	 * @param path
+	 * @param path name
 	 * @return
 	 */
 	public int deleteTarget(String path) {
@@ -594,7 +595,7 @@ public class FileManager {
 		int read;
 		
 		if(file.isFile()){
-			ZipEntry entry = new ZipEntry(file.getPath());
+			ZipEntry entry = new ZipEntry(file.getName());
 			zout.putNextEntry(entry);
 			BufferedInputStream instream = new BufferedInputStream(
 										   new FileInputStream(file));

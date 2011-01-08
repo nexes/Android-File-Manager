@@ -78,6 +78,7 @@ public class EventHandler implements OnClickListener {
 	private final FileManager file_mg;
 	private TableRow delegate;
 	private boolean multi_select_flag = false;
+	private boolean delete_after_copy = false;
 	private boolean thumbnail_flag = true;
 	private int color = Color.WHITE;
 	
@@ -144,6 +145,16 @@ public class EventHandler implements OnClickListener {
 	}
 	
 	/**
+	 * If you want to move a file (cut/paste) and not just copy/paste use this method to 
+	 * tell the file manager to delete the old reference of the file.
+	 * 
+	 * @param delete true if you want to move a file, false to copy the file
+	 */
+	public void setDeleteAfterCopy(boolean delete) {
+		delete_after_copy = delete;
+	}
+	
+	/**
 	 * Indicates whether the user wants to select 
 	 * multiple files or folders at a time.
 	 * <br><br>
@@ -156,6 +167,7 @@ public class EventHandler implements OnClickListener {
 	}
 	
 	/**
+	 * Use this method to determine if the user has selected multiple files/folders
 	 * 
 	 * @return	returns true if the user is holding multiple objects (multi-select)
 	 */
@@ -334,6 +346,7 @@ public class EventHandler implements OnClickListener {
     			delegate.killMultiSelect(true);
 				break;
 				
+			case R.id.hidden_move:
 			case R.id.hidden_copy:
 				/* check if user selected objects before going further */
 				if(multiselect_data == null || multiselect_data.isEmpty()) {
@@ -341,8 +354,12 @@ public class EventHandler implements OnClickListener {
 					break;
 				}
 				
+				if(v.getId() == R.id.hidden_move)
+					delete_after_copy = true;
+					
+				
 				info_label.setText("Holding " + multiselect_data.size() + 
-								   " file(s) to be copied");
+								   " file(s)");
 				
 				delegate.killMultiSelect(false);
 				break;
@@ -502,10 +519,10 @@ public class EventHandler implements OnClickListener {
     	 * This will turn off multi-select and hide the multi-select buttons at the
     	 * bottom of the view. 
     	 * 
-    	 * @param clearData if this is true any file/folder the user selected for multi-select
+    	 * @param clearData if this is true any files/folders the user selected for multi-select
     	 * 					will be cleared. If false, the data will be kept for later use. Note:
-    	 * 					multi-select copy will usually be the only one to pass true, so we can
-    	 * 					later paste it to another folder.
+    	 * 					multi-select copy and move will usually be the only one to pass false, 
+    	 * 					so we can later paste it to another folder.
     	 */
     	public void killMultiSelect(boolean clearData) {
     		hidden_layout = (LinearLayout)((Activity)context).findViewById(R.id.hidden_buttons);
@@ -792,12 +809,20 @@ public class EventHandler implements OnClickListener {
 					int len = params.length;
 					
 					if(multiselect_data != null && !multiselect_data.isEmpty()) {
-						for(int i = 1; i < len; i++)
-							copy_rtn = file_mg.copyToDirectory(params[i], params[0]);	
+						for(int i = 1; i < len; i++) {
+							copy_rtn = file_mg.copyToDirectory(params[i], params[0]);
+							
+							if(delete_after_copy)
+								file_mg.deleteTarget(params[i]);
+						}
 					} else {
 						copy_rtn = file_mg.copyToDirectory(params[0], params[1]);
+						
+						if(delete_after_copy)
+							file_mg.deleteTarget(params[0]);
 					}
 					
+					delete_after_copy = false;
 					return null;
 					
 				case UNZIP_TYPE:
