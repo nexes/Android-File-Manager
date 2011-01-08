@@ -50,7 +50,7 @@ public class ProcessManager extends ListActivity {
 	private final int CONVERT = 1024;
 	
 	private PackageManager pk;
-	private List<RunningAppProcessInfo> total_process, display_process;
+	private List<RunningAppProcessInfo> display_process;
 	private ActivityManager activity_man;
 	private MyListAdapter delegate;
 	private TextView availMem_label, numProc_label;
@@ -64,13 +64,10 @@ public class ProcessManager extends ListActivity {
 		
 		availMem_label = (TextView)findViewById(R.id.available_mem_label);
 		numProc_label = (TextView)findViewById(R.id.num_processes_label);
-		
 		activity_man = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
 		
 		display_process = new ArrayList<RunningAppProcessInfo>();
-		total_process = activity_man.getRunningAppProcesses();
-	
-		update_list(false);
+		update_list();
 		
 		delegate = new MyListAdapter();
 		setListAdapter(delegate);
@@ -80,7 +77,7 @@ public class ProcessManager extends ListActivity {
 	protected void onListItemClick(ListView parent, View view, int position, long id) {
 		AlertDialog dialog;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		CharSequence[] options = {"Kill", "Details", "Launch"};
+		CharSequence[] options = {"Details", "Launch"};
 		final int index = position;
 		
 		builder.setTitle("Process options");
@@ -96,19 +93,13 @@ public class ProcessManager extends ListActivity {
 			@Override
 			public void onClick(DialogInterface dialog, int choice) {
 				
-				switch (choice) {
+				switch (choice) {				
 					case 0:
-//						Process.killProcess(display_process.get(index).pid);
-						activity_man.restartPackage(display_process.get(index).processName);
-						update_list(true);
-						break;
-						
-					case 1:
 						Toast.makeText(ProcessManager.this, display_process.get(index).processName,
 								   Toast.LENGTH_SHORT).show();
 						break;
 						
-					case 2:
+					case 1:
 						Intent i = pk.getLaunchIntentForPackage(display_process.get(index).processName);
 						
 						if(i != null)
@@ -140,16 +131,9 @@ public class ProcessManager extends ListActivity {
 		numProc_label.setText("Number of processes:\t " + display_process.size());
 	}
 	
-	/**
-	 * 
-	 */
-	private void update_list(boolean notifyChange) {
+	private void update_list() {
+		List<RunningAppProcessInfo> total_process = activity_man.getRunningAppProcesses();
 		int len;
-		
-		if (!total_process.isEmpty())
-			total_process.clear();
-		if(!display_process.isEmpty())
-			display_process.clear();
 		
 		total_process = activity_man.getRunningAppProcesses();
 		len = total_process.size();
@@ -159,9 +143,6 @@ public class ProcessManager extends ListActivity {
 			    total_process.get(i).importance != RunningAppProcessInfo.IMPORTANCE_SERVICE)
 				display_process.add(total_process.get(i));
 		}
-		
-		if(notifyChange)
-			delegate.notifyDataSetChanged();
 		
 		update_labels();
 	}
@@ -212,6 +193,7 @@ public class ProcessManager extends ListActivity {
 			
 			try {
 				icon.setImageDrawable(pk.getApplicationIcon(pkg_name));
+				
 			} catch (NameNotFoundException e) {
 				icon.setImageResource(R.drawable.processinfo);
 			}
