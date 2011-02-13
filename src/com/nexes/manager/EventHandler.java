@@ -270,7 +270,8 @@ public class EventHandler implements OnClickListener {
 				if (file_mg.getCurrentDir() != "/") {
 					if(multi_select_flag) {
 						delegate.killMultiSelect(true);
-						Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
+						Toast.makeText(context, "Multi-select is now off", 
+									   Toast.LENGTH_SHORT).show();
 					}
 					updateDirectory(file_mg.getPreviousDir());
 					if(path_label != null)
@@ -281,7 +282,8 @@ public class EventHandler implements OnClickListener {
 			case R.id.home_button:		
 				if(multi_select_flag) {
 					delegate.killMultiSelect(true);
-					Toast.makeText(context, "Multi-select is now off", Toast.LENGTH_SHORT).show();
+					Toast.makeText(context, "Multi-select is now off", 
+								   Toast.LENGTH_SHORT).show();
 				}
 				updateDirectory(file_mg.getHomeDir());
 				if(path_label != null)
@@ -358,7 +360,6 @@ public class EventHandler implements OnClickListener {
 				if(v.getId() == R.id.hidden_move)
 					delete_after_copy = true;
 					
-				
 				info_label.setText("Holding " + multiselect_data.size() + 
 								   " file(s)");
 				
@@ -372,14 +373,33 @@ public class EventHandler implements OnClickListener {
 					break;
 				}
 
-				String[] data = new String[multiselect_data.size()];
+				final String[] data = new String[multiselect_data.size()];
 				int at = 0;
 				
 				for(String string : multiselect_data)
 					data[at++] = string;
 				
-				new BackgroundWork(DELETE_TYPE).execute(data);
-				delegate.killMultiSelect(true);
+				AlertDialog.Builder builder = new AlertDialog.Builder(context);
+				builder.setMessage("Are you sure you want to delete " +
+								    data.length + " files? This cannot be " +
+								    "undone.");
+				builder.setCancelable(false);
+				builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						new BackgroundWork(DELETE_TYPE).execute(data);
+						delegate.killMultiSelect(true);
+					}
+				});
+				builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						delegate.killMultiSelect(true);
+						dialog.cancel();
+					}
+				});
+				
+				builder.create().show();
 				break;
 		}
 	}
@@ -605,7 +625,9 @@ public class EventHandler implements OnClickListener {
     			String ext = file.toString();
     			String sub_ext = ext.substring(ext.lastIndexOf(".") + 1);
     			
-    			/*This series of else if statements will determine which icon is displayed*/
+    			/* This series of else if statements will determine which 
+    			 * icon is displayed 
+    			 */
     			if (sub_ext.equalsIgnoreCase("pdf")) {
     				holder.icon.setImageResource(R.drawable.pdf);
     			
