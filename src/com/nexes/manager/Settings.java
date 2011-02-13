@@ -26,11 +26,10 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Toast;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.CompoundButton;
-//import android.util.Log;
+import android.util.Log;
 
 public class Settings extends Activity {
 	private boolean hidden_changed = false;
@@ -57,7 +56,7 @@ public class Settings extends Activity {
 				
 		final CheckBox hidden_bx = (CheckBox)findViewById(R.id.setting_hidden_box);
 		final CheckBox thumbnail_bx = (CheckBox)findViewById(R.id.setting_thumbnail_box);
-		final ImageButton color_bt = (ImageButton)findViewById(R.id.setting_color_button);
+		final ImageButton color_bt = (ImageButton)findViewById(R.id.setting_text_color_button);
 		final ImageButton sort_bt = (ImageButton)findViewById(R.id.settings_sort_button);
 
 		hidden_bx.setChecked(hidden_state);
@@ -67,51 +66,63 @@ public class Settings extends Activity {
 			@Override
 			public void onClick(View view) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(Settings.this);
-				AlertDialog dialog;
-				CharSequence[] options = {"White", "Green", "Red", "Blue", "Cyan",
-									      "Yellow", "Magenta"};
+				CharSequence[] options = {"White", "Magenta", "Yellow", "Red", "Cyan",
+									      "Blue", "Green"};
+				int index = ((color_state & 0x00ffffff) << 2) % options.length;
 				
 				builder.setTitle("Change text color");
 				builder.setIcon(R.drawable.color);
-				builder.setItems(options, new DialogInterface.OnClickListener() {
+				builder.setSingleChoiceItems(options, index, new DialogInterface.OnClickListener() {
+					@Override
 					public void onClick(DialogInterface dialog, int index) {
 						switch(index) {
 							case 0:
 								color_state = Color.WHITE;
-								Toast.makeText(Settings.this, "White selected", Toast.LENGTH_SHORT).show();
+								is.putExtra("COLOR", color_state);
+								color_changed = true;
+								
 								break;
 							case 1:
-								color_state = Color.GREEN;
-								Toast.makeText(Settings.this, "Green selected", Toast.LENGTH_SHORT).show();
+								color_state = Color.MAGENTA;
+								is.putExtra("COLOR", color_state);
+								color_changed = true;
+								
 								break;
 							case 2:
-								color_state = Color.RED;
-								Toast.makeText(Settings.this, "Red selected", Toast.LENGTH_SHORT).show();
+								color_state = Color.YELLOW;
+								is.putExtra("COLOR", color_state);
+								color_changed = true;
+								
 								break;
 							case 3:
-								color_state = Color.BLUE;
-								Toast.makeText(Settings.this, "Blue selected", Toast.LENGTH_SHORT).show();
+								color_state = Color.RED;
+								is.putExtra("COLOR", color_state);
+								color_changed = true;
+								
 								break;
 							case 4:
 								color_state = Color.CYAN;
-								Toast.makeText(Settings.this, "Cyan selected", Toast.LENGTH_SHORT).show();
+								is.putExtra("COLOR", color_state);
+								color_changed = true;
+								
 								break;
 							case 5:
-								color_state = Color.YELLOW;
-								Toast.makeText(Settings.this, "Yellow selected", Toast.LENGTH_SHORT).show();
+								color_state = Color.BLUE;
+								is.putExtra("COLOR", color_state);
+								color_changed = true;
+								
 								break;
 							case 6:
-								color_state = Color.MAGENTA;
-								Toast.makeText(Settings.this, "Magenta selected", Toast.LENGTH_SHORT).show();
+								color_state = Color.GREEN;
+								is.putExtra("COLOR", color_state);
+								color_changed = true;
+								
 								break;
 						}
-						is.putExtra("COLOR", color_state);
-						color_changed = true;
 					}
 				});
 				
-				dialog = builder.create();
-				dialog.show();
+				builder.create().show();
 			}
 		});
 		
@@ -142,7 +153,8 @@ public class Settings extends Activity {
     			CharSequence[] options = {"None", "Alphabetical", "Type"};
     			
     			builder.setTitle("Sort by...");
-    			builder.setItems(options, new DialogInterface.OnClickListener() {					
+    			builder.setIcon(R.drawable.filter);
+    			builder.setSingleChoiceItems(options, sort_state, new DialogInterface.OnClickListener() {					
 					@Override
 					public void onClick(DialogInterface dialog, int index) {
 						switch(index) {
