@@ -46,6 +46,9 @@ public class DirectoryInfo extends Activity {
 		if(i != null) {
 			if(i.getAction() != null && i.getAction().equals(Intent.ACTION_VIEW)) {
 				mPathName = i.getData().getPath();
+				
+				if(mPathName == null)
+					mPathName = "";
 			} else {
 				mPathName = i.getExtras().getString("PATH_NAME");
 			}
