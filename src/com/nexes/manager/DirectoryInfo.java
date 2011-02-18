@@ -78,9 +78,9 @@ public class DirectoryInfo extends Activity {
 
 	private class BackgroundWork extends AsyncTask<String, Void, Double> {
 		private ProgressDialog dialog;
-		private String display_size;
-		private int file_count = 0;
-		private int dir_count = 0;
+		private String mDisplaySize;
+		private int mFileCount = 0;
+		private int mDirCount = 0;
 		
 		protected void onPreExecute(){
 			dialog = ProgressDialog.show(DirectoryInfo.this, "", "Calculating information...", true, true);
@@ -101,19 +101,19 @@ public class DirectoryInfo extends Activity {
 			
 			for (int i = 0; i < len; i++){
 				if(list[i].isFile())
-					file_count++;
+					mFileCount++;
 				else if(list[i].isDirectory())
-					dir_count++;
+					mDirCount++;
 			}
 			
 			if (size > GB)
-				display_size = String.format("%.2f Gb ", size / GB);
+				mDisplaySize = String.format("%.2f Gb ", size / GB);
 			else if (size < GB && size > MG)
-				display_size = String.format("%.2f Mb ", size / MG);
+				mDisplaySize = String.format("%.2f Mb ", size / MG);
 			else if (size < MG && size > KB)
-				display_size = String.format("%.2f Kb ", size/ KB);
+				mDisplaySize = String.format("%.2f Kb ", size/ KB);
 			else
-				display_size = String.format("%.2f bytes ", size);
+				mDisplaySize = String.format("%.2f bytes ", size);
 			
 			return size;
 		}
@@ -123,9 +123,9 @@ public class DirectoryInfo extends Activity {
 			
 			mNameLabel.setText(dir.getName());
 			mPathLabel.setText(dir.getAbsolutePath());
-			mDirLabel.setText(dir_count + " folders ");
-			mFileLabel.setText(file_count + " files ");
-			mTotalLabel.setText(display_size);
+			mDirLabel.setText(mDirCount + " folders ");
+			mFileLabel.setText(mFileCount + " files ");
+			mTotalLabel.setText(mDisplaySize);
 			mTimeLabel.setText(new Date(dir.lastModified()) + " ");
 			
 			dialog.cancel();
