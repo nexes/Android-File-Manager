@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.Date;
 import android.os.Bundle;
 import android.os.AsyncTask;
+import android.content.Intent;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.view.View.OnClickListener;
@@ -30,35 +31,43 @@ import android.widget.TextView;
 import android.widget.Button;
 
 public class DirectoryInfo extends Activity {
-	private final int KB = 1024;
-	private final int MG = KB * KB;
-	private final int GB = MG * KB;
-	private String path_name;
-	private TextView name_label, path_label, dir_label,
-					 file_label, time_label, total_label;
+	private static final int KB = 1024;
+	private static final int MG = KB * KB;
+	private static final int GB = MG * KB;
+	private String mPathName;
+	private TextView mNameLabel, mPathLabel, mDirLabel,
+					 mFileLabel, mTimeLabel, mTotalLabel;
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.info_layout);
-		path_name = getIntent().getExtras().getString("PATH_NAME");
 		
-		name_label = (TextView)findViewById(R.id.name_label);
-		path_label = (TextView)findViewById(R.id.path_label);
-		dir_label = (TextView)findViewById(R.id.dirs_label);
-		file_label = (TextView)findViewById(R.id.files_label);
-		time_label = (TextView)findViewById(R.id.time_stamp);
-		total_label = (TextView)findViewById(R.id.total_size);
+		Intent i = getIntent();
+		if(i != null) {
+			if(i.getAction() != null && i.getAction().equals(Intent.ACTION_VIEW)) {
+				mPathName = i.getData().getPath();
+			} else {
+				mPathName = i.getExtras().getString("PATH_NAME");
+			}
+		}
 		
-		/*make zip button visible and setup onclick logic to have
-		 * zip button 
+		mNameLabel = (TextView)findViewById(R.id.name_label);
+		mPathLabel = (TextView)findViewById(R.id.path_label);
+		mDirLabel = (TextView)findViewById(R.id.dirs_label);
+		mFileLabel = (TextView)findViewById(R.id.files_label);
+		mTimeLabel = (TextView)findViewById(R.id.time_stamp);
+		mTotalLabel = (TextView)findViewById(R.id.total_size);
+				
+		/* make zip button visible and setup onclick logic to have zip button 
 		 */
 		Button zip = (Button)findViewById(R.id.zip_button);
 		zip.setVisibility(Button.GONE);
+		 
 		
 		Button back = (Button)findViewById(R.id.back_button);
 		back.setOnClickListener(new ButtonHandler());
 		
-		new BackgroundWork().execute(path_name);
+		new BackgroundWork().execute(mPathName);
 		
 	}
 	
@@ -110,14 +119,14 @@ public class DirectoryInfo extends Activity {
 		}
 		
 		protected void onPostExecute(Double result) {
-			File dir = new File(path_name);
+			File dir = new File(mPathName);
 			
-			name_label.setText(dir.getName());
-			path_label.setText(dir.getAbsolutePath());
-			dir_label.setText(dir_count + " folders ");
-			file_label.setText(file_count + " files ");
-			total_label.setText(display_size);
-			time_label.setText(new Date(dir.lastModified()) + " ");
+			mNameLabel.setText(dir.getName());
+			mPathLabel.setText(dir.getAbsolutePath());
+			mDirLabel.setText(dir_count + " folders ");
+			mFileLabel.setText(file_count + " files ");
+			mTotalLabel.setText(display_size);
+			mTimeLabel.setText(new Date(dir.lastModified()) + " ");
 			
 			dialog.cancel();
 		}	
