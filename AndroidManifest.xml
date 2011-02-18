@@ -30,31 +30,42 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+            	<action android:name="android.intent.action.GET_CONTENT" />
+            	<data android:mimeType="application/manager" />
+            	<category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
 	    <activity android:name=".Settings" 
-	    		  android:label="@string/app_name"/>
+	    		  android:label="@string/app_name" />
 	    
 	    <activity android:name=".AudioPlayblack"
 	    		  android:label="@string/media_dialog"
-	    		  android:theme="@android:style/Theme.Dialog"/>
+	    		  android:theme="@android:style/Theme.Dialog" />
 	    
-	    <activity android:name=".DirectoryInfo" 
-	    		  android:label="@string/dir_info"/>
+	    <activity android:name=".DirectoryInfo" android:enabled="true"
+	    		  android:label="@string/dir_info">
+	    	<intent-filter>
+	    		<action android:name="android.intent.action.VIEW" />
+	    		<data android:mimeType="application/manager" />
+	    		<category android:name="android.intent.category.DEFAULT" />
+	    	</intent-filter>
+	    </activity>
 	    
 	    <activity android:name=".ProcessManager" 
-	    		  android:label="@string/manager_act"/>
+	    		  android:label="@string/manager_act" />
 	    
 	    <activity android:name=".WirelessManager" 
-	    		  android:label="Wireless Information"/>
+	    		  android:label="Wireless Information" />
 	    		  
 	    <activity android:name=".ApplicationBackup"
-	    		  android:label="Installed Applications"/>
+	    		  android:label="Installed Applications" />
 	    		  
 	    <activity android:name=".HelpManager"
 	    		  android:label="About Open Manager"
 	    		  android:theme="@android:style/Theme.Dialog"
-	    		  android:screenOrientation="portrait"/>
+	    		  android:screenOrientation="portrait" /> 
 	        
 </application>
     <uses-sdk android:minSdkVersion="3" />
