@@ -96,18 +96,19 @@ public final class Main extends ListActivity {
 	private static final int F_MENU_COPY =   0x0d;			//context menu id
 	private static final int SETTING_REQ = 	 0x10;			//request code for intent
 
-	private FileManager flmg;
-	private EventHandler handler;
-	private EventHandler.TableRow table;
+	private FileManager mFileMag;
+	private EventHandler mHandler;
+	private EventHandler.TableRow mTable;
 	
-	private SharedPreferences settings;
-	private boolean holding_file = false;
-	private boolean holding_zip = false;
-	private boolean use_back_key = true;
-	private String copied_target;
-	private String zipped_target;
-	private String selected_list_item;				//item from context menu
-	private TextView  path_label, detail_label;
+	private SharedPreferences mSettings;
+	private boolean mReturnIntent = false;
+	private boolean mHoldingFile = false;
+	private boolean mHoldingZip = false;
+	private boolean mUseBackKey = true;
+	private String mCopiedTarget;
+	private String mZippedTarget;
+	private String mSelectedListItem;				//item from context menu
+	private TextView  mPathLabel, mDetailLabel;
 
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -115,70 +116,86 @@ public final class Main extends ListActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
         
+        if(getIntent().getAction().equals(Intent.ACTION_GET_CONTENT))
+        	mReturnIntent = true;
+        
         /*read settings*/
-        settings = getSharedPreferences(PREFS_NAME, 0);
-        boolean hide = settings.getBoolean(PREFS_HIDDEN, false);
-        boolean thumb = settings.getBoolean(PREFS_THUMBNAIL, true);
-        int color = settings.getInt(PREFS_COLOR, -1);
-        int sort = settings.getInt(PREFS_SORT, 0);
+        mSettings = getSharedPreferences(PREFS_NAME, 0);
+        boolean hide = mSettings.getBoolean(PREFS_HIDDEN, false);
+        boolean thumb = mSettings.getBoolean(PREFS_THUMBNAIL, true);
+        int color = mSettings.getInt(PREFS_COLOR, -1);
+        int sort = mSettings.getInt(PREFS_SORT, 0);
         
-        flmg = new FileManager();
-        flmg.setShowHiddenFiles(hide);
-        flmg.setSortType(sort);
+        mFileMag = new FileManager();
+        mFileMag.setShowHiddenFiles(hide);
+        mFileMag.setSortType(sort);
         
-        handler = new EventHandler(Main.this, flmg);
-        handler.setTextColor(color);
-        handler.setShowThumbnails(thumb);
-        table = handler.new TableRow();
+        mHandler = new EventHandler(Main.this, mFileMag);
+        mHandler.setTextColor(color);
+        mHandler.setShowThumbnails(thumb);
+        mTable = mHandler.new TableRow();
         
         /*sets the ListAdapter for our ListActivity and
          *gives our EventHandler class the same adapter
          */
-        handler.setListAdapter(table);
-        setListAdapter(table);
-               
+        mHandler.setListAdapter(mTable);
+        setListAdapter(mTable);
+        
         /* register context menu for our list view */
         registerForContextMenu(getListView());
         
-        path_label = (TextView)findViewById(R.id.path_label);
-        detail_label = (TextView)findViewById(R.id.detail_label);
-        path_label.setText("path: /sdcard");
+        mPathLabel = (TextView)findViewById(R.id.path_label);
+        mDetailLabel = (TextView)findViewById(R.id.detail_label);
+        mPathLabel.setText("path: /sdcard");
         
-        handler.setUpdateLabel(path_label, detail_label);
+        mHandler.setUpdateLabel(mPathLabel, mDetailLabel);
         
         /*buttons on the top row or the main activity*/
         ImageButton help_b = (ImageButton)findViewById(R.id.help_button);
-        help_b.setOnClickListener(handler);
+        help_b.setOnClickListener(mHandler);
         
         ImageButton home_b = (ImageButton)findViewById(R.id.home_button);
-        home_b.setOnClickListener(handler);
+        home_b.setOnClickListener(mHandler);
         
         ImageButton back_b = (ImageButton)findViewById(R.id.back_button);        
-        back_b.setOnClickListener(handler);
+        back_b.setOnClickListener(mHandler);
         
         ImageButton info_b = (ImageButton)findViewById(R.id.info_button);
-        info_b.setOnClickListener(handler);
+        info_b.setOnClickListener(mHandler);
         
         ImageButton manage_b = (ImageButton)findViewById(R.id.manage_button);
-        manage_b.setOnClickListener(handler);
+        manage_b.setOnClickListener(mHandler);
         
         ImageButton multi_b = (ImageButton)findViewById(R.id.multiselect_button);
-        multi_b.setOnClickListener(handler);
+        multi_b.setOnClickListener(mHandler);
         
         /*hidden multiselect buttons*/
         Button copy = (Button)findViewById(R.id.hidden_copy);
-        copy.setOnClickListener(handler);
+        copy.setOnClickListener(mHandler);
         
         Button attach = (Button)findViewById(R.id.hidden_attach);
-        attach.setOnClickListener(handler);
+        attach.setOnClickListener(mHandler);
         
         Button delete = (Button)findViewById(R.id.hidden_delete);
-        delete.setOnClickListener(handler);
+        delete.setOnClickListener(mHandler);
         
         Button move = (Button)findViewById(R.id.hidden_move);
-        move.setOnClickListener(handler);
+        move.setOnClickListener(mHandler);
     }
 
+	/*(non Java-Doc)
+	 * 
+	 */
+	private void returnIntentResults(File data) {
+		mReturnIntent = false;
+		
+		Intent ret = new Intent();
+		ret.setData(Uri.fromFile(data));
+		setResult(RESULT_OK, ret);
+		
+		finish();
+	}
+	
 	/**
 	 *  To add more functionality and let the user interact with more
 	 *  file types, this is the function to add the ability. 
@@ -187,11 +204,11 @@ public final class Main extends ListActivity {
 	 */
     @Override
     public void onListItemClick(ListView parent, View view, int position, long id) {
-    	final String item = handler.getData(position);
-    	boolean multiSelect = handler.isMultiSelected();
-    	File file = new File(flmg.getCurrentDir() + "/" + item);
+    	final String item = mHandler.getData(position);
+    	boolean multiSelect = mHandler.isMultiSelected();
+    	File file = new File(mFileMag.getCurrentDir() + "/" + item);
     	String item_ext = null;
-
+    	
     	try {
     		item_ext = item.substring(item.lastIndexOf("."), item.length());
     		
@@ -204,17 +221,19 @@ public final class Main extends ListActivity {
     	 * not make an intent for it.
     	 */
     	if(multiSelect) {
-    		table.addMultiPosition(position, file.getPath());
+    		mTable.addMultiPosition(position, file.getPath());
     		
     	} else {
 	    	if (file.isDirectory()) {
 				if(file.canRead()) {
-		    		handler.updateDirectory(flmg.getNextDir(item, false));
-		    		path_label.setText(flmg.getCurrentDir());
+		    		mHandler.updateDirectory(mFileMag.getNextDir(item, false));
+		    		mPathLabel.setText(mFileMag.getCurrentDir());
 		    		
-		    		/*set back button switch to true (this will be better implemented later)*/
-		    		if(!use_back_key)
-		    			use_back_key = true;
+		    		/*set back button switch to true 
+		    		 * (this will be better implemented later)
+		    		 */
+		    		if(!mUseBackKey)
+		    			mUseBackKey = true;
 		    		
 	    		} else {
 	    			Toast.makeText(this, "Can't read folder due to permissions", 
@@ -223,82 +242,125 @@ public final class Main extends ListActivity {
 	    	}
 	    	
 	    	/*music file selected--add more audio formats*/
-	    	else if (item_ext.equalsIgnoreCase(".mp3") || item_ext.equalsIgnoreCase(".m4a")) {
-	    			
-	        	Intent music_int = new Intent(this, AudioPlayblack.class);
-	        	music_int.putExtra("MUSIC PATH", flmg.getCurrentDir() +"/"+ item);
-	        	startActivity(music_int);
+	    	else if (item_ext.equalsIgnoreCase(".mp3") || 
+	    			 item_ext.equalsIgnoreCase(".m4a")) {
+	    		
+	    		if(mReturnIntent) {
+	    			returnIntentResults(file);
+	    		} else {
+		    		Intent music_int = new Intent(this, AudioPlayblack.class);
+		        	music_int.putExtra("MUSIC PATH", mFileMag.getCurrentDir() +"/"+ item);
+		        	startActivity(music_int);
+	    		}
 	    	}
 	    	
 	    	/*photo file selected*/
-	    	else if(item_ext.equalsIgnoreCase(".jpeg") || item_ext.equalsIgnoreCase(".jpg") ||
-	    			item_ext.equalsIgnoreCase(".png")  || item_ext.equalsIgnoreCase(".gif") || 
+	    	else if(item_ext.equalsIgnoreCase(".jpeg") || 
+	    			item_ext.equalsIgnoreCase(".jpg")  ||
+	    			item_ext.equalsIgnoreCase(".png")  ||
+	    			item_ext.equalsIgnoreCase(".gif")  || 
 	    			item_ext.equalsIgnoreCase(".tiff")) {
 	 			    		
 	    		if (file.exists()) {
-		    		Intent picIntent = new Intent();
-		    		picIntent.setAction(android.content.Intent.ACTION_VIEW);
-		    		picIntent.setDataAndType(Uri.fromFile(file), "image/*");
-		    		startActivity(picIntent);
+	    			if(mReturnIntent) {
+	    				returnIntentResults(file);
+	    				
+	    			} else {
+			    		Intent picIntent = new Intent();
+			    		picIntent.setAction(android.content.Intent.ACTION_VIEW);
+			    		picIntent.setDataAndType(Uri.fromFile(file), "image/*");
+			    		startActivity(picIntent);
+	    			}
 	    		}
 	    	}
 	    	
 	    	/*video file selected--add more video formats*/
-	    	else if(item_ext.equalsIgnoreCase(".m4v") || item_ext.equalsIgnoreCase(".3gp") ||
-	    			item_ext.equalsIgnoreCase(".wmv") || item_ext.equalsIgnoreCase(".mp4") || 
+	    	else if(item_ext.equalsIgnoreCase(".m4v") || 
+	    			item_ext.equalsIgnoreCase(".3gp") ||
+	    			item_ext.equalsIgnoreCase(".wmv") || 
+	    			item_ext.equalsIgnoreCase(".mp4") || 
 	    			item_ext.equalsIgnoreCase(".ogg")) {
 	    		
 	    		if (file.exists()) {
-		    		Intent movieIntent = new Intent();
-		    		movieIntent.setAction(android.content.Intent.ACTION_VIEW);
-		    		movieIntent.setDataAndType(Uri.fromFile(file), "video/*");
-		    		startActivity(movieIntent);
+	    			if(mReturnIntent) {
+	    				returnIntentResults(file);
+	    				
+	    			} else {
+			    		Intent movieIntent = new Intent();
+			    		movieIntent.setAction(android.content.Intent.ACTION_VIEW);
+			    		movieIntent.setDataAndType(Uri.fromFile(file), "video/*");
+			    		startActivity(movieIntent);
+	    			}
 	    		}
 	    	}
 	    	
-	    	/*zip and gzip file selected (gzip will be implemented later)*/
+	    	/*zip file */
 	    	else if(item_ext.equalsIgnoreCase(".zip")) {
 	    		
-	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-	    		AlertDialog alert;
-	    		zipped_target = flmg.getCurrentDir() + "/" + item;
-	    		CharSequence[] option = {"Extract here", "Extract to..."};
-	    		
-	    		builder.setTitle("Extract");
-	    		builder.setItems(option, new DialogInterface.OnClickListener() {
-	
-					public void onClick(DialogInterface dialog, int which) {
-						switch(which) {
-							case 0:
-								String dir = flmg.getCurrentDir();
-								handler.unZipFile(item, dir + "/");
-								break;
-								
-							case 1:
-								detail_label.setText("Holding " + item + " to extract");
-								holding_zip = true;
-								break;
+	    		if(mReturnIntent) {
+	    			returnIntentResults(file);
+	    			
+	    		} else {
+		    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		    		AlertDialog alert;
+		    		mZippedTarget = mFileMag.getCurrentDir() + "/" + item;
+		    		CharSequence[] option = {"Extract here", "Extract to..."};
+		    		
+		    		builder.setTitle("Extract");
+		    		builder.setItems(option, new DialogInterface.OnClickListener() {
+		
+						public void onClick(DialogInterface dialog, int which) {
+							switch(which) {
+								case 0:
+									String dir = mFileMag.getCurrentDir();
+									mHandler.unZipFile(item, dir + "/");
+									break;
+									
+								case 1:
+									mDetailLabel.setText("Holding " + item + 
+														 " to extract");
+									mHoldingZip = true;
+									break;
+							}
 						}
-					}
-	    		});
+		    		});
+		    		
+		    		alert = builder.create();
+		    		alert.show();
+	    		}
+	    	}
+	    	
+	    	/* gzip files, this will be implemented later */
+	    	else if(item_ext.equalsIgnoreCase(".gzip") ||
+	    			item_ext.equalsIgnoreCase(".gz")) {
 	    		
-	    		alert = builder.create();
-	    		alert.show();
+	    		if(mReturnIntent) {
+	    			returnIntentResults(file);
+	    			
+	    		} else {
+	    			//TODO:
+	    		}
 	    	}
 	    	
 	    	/*pdf file selected*/
 	    	else if(item_ext.equalsIgnoreCase(".pdf")) {
 	    		
 	    		if(file.exists()) {
-		    		Intent pdfIntent = new Intent();
-		    		pdfIntent.setAction(android.content.Intent.ACTION_VIEW);
-		    		pdfIntent.setDataAndType(Uri.fromFile(file), "application/pdf");
-		    		
-		    		try {
-		    			startActivity(pdfIntent);
-		    		} catch (ActivityNotFoundException e) {
-		    			Toast.makeText(this, "Sorry, couldn't find a pdf viewer", 
-								Toast.LENGTH_SHORT).show();
+	    			if(mReturnIntent) {
+	    				returnIntentResults(file);
+	    				
+	    			} else {
+			    		Intent pdfIntent = new Intent();
+			    		pdfIntent.setAction(android.content.Intent.ACTION_VIEW);
+			    		pdfIntent.setDataAndType(Uri.fromFile(file), 
+			    								 "application/pdf");
+			    		
+			    		try {
+			    			startActivity(pdfIntent);
+			    		} catch (ActivityNotFoundException e) {
+			    			Toast.makeText(this, "Sorry, couldn't find a pdf viewer", 
+									Toast.LENGTH_SHORT).show();
+			    		}
 		    		}
 	    		}
 	    	}
@@ -307,10 +369,15 @@ public final class Main extends ListActivity {
 	    	else if(item_ext.equalsIgnoreCase(".apk")){
 	    		
 	    		if(file.exists()) {
-	    			Intent apkIntent = new Intent();
-	    			apkIntent.setAction(android.content.Intent.ACTION_VIEW);
-	    			apkIntent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
-	    			startActivity(apkIntent);
+	    			if(mReturnIntent) {
+	    				returnIntentResults(file);
+	    				
+	    			} else {
+		    			Intent apkIntent = new Intent();
+		    			apkIntent.setAction(android.content.Intent.ACTION_VIEW);
+		    			apkIntent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+		    			startActivity(apkIntent);
+	    			}
 	    		}
 	    	}
 	    	
@@ -318,15 +385,42 @@ public final class Main extends ListActivity {
 	    	else if(item_ext.equalsIgnoreCase(".html")) {
 	    		
 	    		if(file.exists()) {
-	    			Intent htmlIntent = new Intent();
-	    			htmlIntent.setAction(android.content.Intent.ACTION_VIEW);
-	    			htmlIntent.setDataAndType(Uri.fromFile(file), "text/html");
-	    			
-	    			try {
-	    				startActivity(htmlIntent);
-	    			} catch(ActivityNotFoundException e) {
-	    				Toast.makeText(this, "Sorry, couldn't find a HTML viewer", 
-	    									Toast.LENGTH_SHORT).show();
+	    			if(mReturnIntent) {
+	    				returnIntentResults(file);
+	    				
+	    			} else {
+		    			Intent htmlIntent = new Intent();
+		    			htmlIntent.setAction(android.content.Intent.ACTION_VIEW);
+		    			htmlIntent.setDataAndType(Uri.fromFile(file), "text/html");
+		    			
+		    			try {
+		    				startActivity(htmlIntent);
+		    			} catch(ActivityNotFoundException e) {
+		    				Toast.makeText(this, "Sorry, couldn't find a HTML viewer", 
+		    									Toast.LENGTH_SHORT).show();
+		    			}
+	    			}
+	    		}
+	    	}
+	    	
+	    	/* text file*/
+	    	else if(item_ext.equalsIgnoreCase(".txt")) {
+	    		
+	    		if(file.exists()) {
+	    			if(mReturnIntent) {
+	    				returnIntentResults(file);
+	    				
+	    			} else {
+		    			Intent txtIntent = new Intent();
+		    			txtIntent.setAction(android.content.Intent.ACTION_VIEW);
+		    			txtIntent.setDataAndType(Uri.fromFile(file), "text/plain");
+		    			
+		    			try {
+		    				startActivity(txtIntent);
+		    			} catch(ActivityNotFoundException e) {
+		    				txtIntent.setType("text/*");
+		    				startActivity(txtIntent);
+		    			}
 	    			}
 	    		}
 	    	}
@@ -334,11 +428,22 @@ public final class Main extends ListActivity {
 	    	/* generic intent */
 	    	else {
 	    		if(file.exists()) {
-		    		Intent generic = new Intent();
-		    		generic.setAction(android.content.Intent.ACTION_VIEW);
-		    		generic.setDataAndType(Uri.fromFile(file), "application/*");
-		    		
-		    		startActivity(generic);
+	    			if(mReturnIntent) {
+	    				returnIntentResults(file);
+	    				
+	    			} else {
+			    		Intent generic = new Intent();
+			    		generic.setAction(android.content.Intent.ACTION_VIEW);
+			    		generic.setDataAndType(Uri.fromFile(file), "text/plain");
+			    		
+			    		try {
+			    			startActivity(generic);
+			    		} catch(ActivityNotFoundException e) {
+			    			Toast.makeText(this, "Sorry, couldn't find anything " +
+			    						   "to open " + file.getName(), 
+			    						   Toast.LENGTH_SHORT).show();
+			    		}
+	    			}
 	    		}
 	    	}
     	}
@@ -348,7 +453,7 @@ public final class Main extends ListActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	super.onActivityResult(requestCode, resultCode, data);
     	
-    	SharedPreferences.Editor editor = settings.edit();
+    	SharedPreferences.Editor editor = mSettings.edit();
     	boolean check;
     	boolean thumbnail;
     	int color;
@@ -371,11 +476,11 @@ public final class Main extends ListActivity {
     		editor.putInt(PREFS_SORT, sort);
     		editor.commit();
     		  		
-    		flmg.setShowHiddenFiles(check);
-    		flmg.setSortType(sort);
-    		handler.setTextColor(color);
-    		handler.setShowThumbnails(thumbnail);
-    		handler.updateDirectory(flmg.getNextDir(flmg.getCurrentDir(), true));
+    		mFileMag.setShowHiddenFiles(check);
+    		mFileMag.setSortType(sort);
+    		mHandler.setTextColor(color);
+    		mHandler.setShowThumbnails(thumbnail);
+    		mHandler.updateDirectory(mFileMag.getNextDir(mFileMag.getCurrentDir(), true));
     	}
     }
     
@@ -409,10 +514,10 @@ public final class Main extends ListActivity {
     			
     		case MENU_SETTING:
     			Intent settings_int = new Intent(this, Settings.class);
-    			settings_int.putExtra("HIDDEN", settings.getBoolean(PREFS_HIDDEN, false));
-    			settings_int.putExtra("THUMBNAIL", settings.getBoolean(PREFS_THUMBNAIL, true));
-    			settings_int.putExtra("COLOR", settings.getInt(PREFS_COLOR, -1));
-    			settings_int.putExtra("SORT", settings.getInt(PREFS_SORT, 0));
+    			settings_int.putExtra("HIDDEN", mSettings.getBoolean(PREFS_HIDDEN, false));
+    			settings_int.putExtra("THUMBNAIL", mSettings.getBoolean(PREFS_THUMBNAIL, true));
+    			settings_int.putExtra("COLOR", mSettings.getInt(PREFS_COLOR, -1));
+    			settings_int.putExtra("SORT", mSettings.getInt(PREFS_SORT, 0));
     			
     			startActivityForResult(settings_int, SETTING_REQ);
     			return true;
@@ -428,24 +533,24 @@ public final class Main extends ListActivity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo info) {
     	super.onCreateContextMenu(menu, v, info);
     	
-    	boolean multi_data = handler.hasMultiSelectData();
+    	boolean multi_data = mHandler.hasMultiSelectData();
     	AdapterContextMenuInfo _info = (AdapterContextMenuInfo)info;
-    	selected_list_item = handler.getData(_info.position);
+    	mSelectedListItem = mHandler.getData(_info.position);
 
     	/* is it a directory and is multi-select turned off */
-    	if(flmg.isDirectory(selected_list_item) && !handler.isMultiSelected()) {
+    	if(mFileMag.isDirectory(mSelectedListItem) && !mHandler.isMultiSelected()) {
     		menu.setHeaderTitle("Folder operations");
         	menu.add(0, D_MENU_DELETE, 0, "Delete Folder");
         	menu.add(0, D_MENU_RENAME, 0, "Rename Folder");
         	menu.add(0, D_MENU_COPY, 0, "Copy Folder");
         	menu.add(0, D_MENU_MOVE, 0, "Move(Cut) Folder");
         	menu.add(0, D_MENU_ZIP, 0, "Zip Folder");
-        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(holding_file || 
+        	menu.add(0, D_MENU_PASTE, 0, "Paste into folder").setEnabled(mHoldingFile || 
         																 multi_data);
-        	menu.add(0, D_MENU_UNZIP, 0, "Extract here").setEnabled(holding_zip);
+        	menu.add(0, D_MENU_UNZIP, 0, "Extract here").setEnabled(mHoldingZip);
     		
         /* is it a file and is multi-select turned off */
-    	} else if(!flmg.isDirectory(selected_list_item) && !handler.isMultiSelected()) {
+    	} else if(!mFileMag.isDirectory(mSelectedListItem) && !mHandler.isMultiSelected()) {
         	menu.setHeaderTitle("File Operations");
     		menu.add(0, F_MENU_DELETE, 0, "Delete File");
     		menu.add(0, F_MENU_RENAME, 0, "Rename File");
@@ -464,7 +569,7 @@ public final class Main extends ListActivity {
     			AlertDialog.Builder builder = new AlertDialog.Builder(this);
     			builder.setTitle("Warning ");
     			builder.setIcon(R.drawable.warning);
-    			builder.setMessage("Deleting " + selected_list_item +
+    			builder.setMessage("Deleting " + mSelectedListItem +
     							" cannot be undone. Are you sure you want to delete?");
     			builder.setCancelable(false);
     			
@@ -475,7 +580,7 @@ public final class Main extends ListActivity {
     			});
     			builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						handler.deleteFile(flmg.getCurrentDir() + "/" + selected_list_item);
+						mHandler.deleteFile(mFileMag.getCurrentDir() + "/" + mSelectedListItem);
 					}
     			});
     			AlertDialog alert_d = builder.create();
@@ -491,7 +596,7 @@ public final class Main extends ListActivity {
     			return true;
     			
     		case F_MENU_ATTACH:
-    			File file = new File(flmg.getCurrentDir() +"/"+ selected_list_item);
+    			File file = new File(mFileMag.getCurrentDir() +"/"+ mSelectedListItem);
     			Intent mail_int = new Intent();
     			
     			mail_int.setAction(android.content.Intent.ACTION_SEND);
@@ -506,45 +611,45 @@ public final class Main extends ListActivity {
     		case F_MENU_COPY:
     		case D_MENU_COPY:
     			if(item.getItemId() == F_MENU_MOVE || item.getItemId() == D_MENU_MOVE)
-    				handler.setDeleteAfterCopy(true);
+    				mHandler.setDeleteAfterCopy(true);
     			
-    			holding_file = true;
+    			mHoldingFile = true;
     			
-    			copied_target = flmg.getCurrentDir() +"/"+ selected_list_item;
-    			detail_label.setText("Holding " + selected_list_item);
+    			mCopiedTarget = mFileMag.getCurrentDir() +"/"+ mSelectedListItem;
+    			mDetailLabel.setText("Holding " + mSelectedListItem);
     			return true;
     			
     		
     		case D_MENU_PASTE:
-    			boolean multi_select = handler.hasMultiSelectData();
+    			boolean multi_select = mHandler.hasMultiSelectData();
     			
     			if(multi_select) {
-    				handler.copyFileMultiSelect(flmg.getCurrentDir() +"/"+ selected_list_item);
+    				mHandler.copyFileMultiSelect(mFileMag.getCurrentDir() +"/"+ mSelectedListItem);
     				
-    			} else if(holding_file && copied_target.length() > 1) {
+    			} else if(mHoldingFile && mCopiedTarget.length() > 1) {
     				
-    				handler.copyFile(copied_target, flmg.getCurrentDir() +"/"+ selected_list_item);
-    				detail_label.setText("");
+    				mHandler.copyFile(mCopiedTarget, mFileMag.getCurrentDir() +"/"+ mSelectedListItem);
+    				mDetailLabel.setText("");
     			}
     			    			   			
-    			holding_file = false;
+    			mHoldingFile = false;
     			return true;
     			
     		case D_MENU_ZIP:
-    			String dir = flmg.getCurrentDir();
+    			String dir = mFileMag.getCurrentDir();
     			
-    			handler.zipFile(dir + "/" + selected_list_item);
+    			mHandler.zipFile(dir + "/" + mSelectedListItem);
     			return true;
     			
     		case D_MENU_UNZIP:
-    			if(holding_zip && zipped_target.length() > 1) {
-    				String current_dir = flmg.getCurrentDir() + "/" + selected_list_item + "/";
-    				String old_dir = zipped_target.substring(0, zipped_target.lastIndexOf("/"));
-    				String name = zipped_target.substring(zipped_target.lastIndexOf("/") + 1, zipped_target.length());
+    			if(mHoldingZip && mZippedTarget.length() > 1) {
+    				String current_dir = mFileMag.getCurrentDir() + "/" + mSelectedListItem + "/";
+    				String old_dir = mZippedTarget.substring(0, mZippedTarget.lastIndexOf("/"));
+    				String name = mZippedTarget.substring(mZippedTarget.lastIndexOf("/") + 1, mZippedTarget.length());
     				
-    				if(new File(zipped_target).canRead() && new File(current_dir).canWrite()) {
-	    				handler.unZipFileToDir(name, current_dir, old_dir);				
-	    				path_label.setText(current_dir);
+    				if(new File(mZippedTarget).canRead() && new File(current_dir).canWrite()) {
+	    				mHandler.unZipFileToDir(name, current_dir, old_dir);				
+	    				mPathLabel.setText(current_dir);
 	    				
     				} else {
     					Toast.makeText(this, "You do not have permission to unzip " + name, 
@@ -552,9 +657,9 @@ public final class Main extends ListActivity {
     				}
     			}
     			
-    			holding_zip = false;
-    			detail_label.setText("");
-    			zipped_target = "";
+    			mHoldingZip = false;
+    			mDetailLabel.setText("");
+    			mZippedTarget = "";
     			return true;
     	}
     	return false;
@@ -576,7 +681,7 @@ public final class Main extends ListActivity {
     			icon.setImageResource(R.drawable.newfolder);
     			
     			TextView label = (TextView)dialog.findViewById(R.id.input_label);
-    			label.setText(flmg.getCurrentDir());
+    			label.setText(mFileMag.getCurrentDir());
     			final EditText input = (EditText)dialog.findViewById(R.id.input_inputText);
     			
     			Button cancel = (Button)dialog.findViewById(R.id.input_cancel_b);
@@ -585,7 +690,7 @@ public final class Main extends ListActivity {
     			create.setOnClickListener(new OnClickListener() {
     				public void onClick (View v) {
     					if (input.getText().length() > 1) {
-    						if (flmg.createDir(flmg.getCurrentDir() + "/", input.getText().toString()) == 0)
+    						if (mFileMag.createDir(mFileMag.getCurrentDir() + "/", input.getText().toString()) == 0)
     							Toast.makeText(Main.this, "Folder " + input.getText().toString() + " created", Toast.LENGTH_LONG)
     								.show();
     						else
@@ -593,8 +698,8 @@ public final class Main extends ListActivity {
     					}
     					
     					dialog.dismiss();
-    					String temp = flmg.getCurrentDir();
-    					handler.updateDirectory(flmg.getNextDir(temp, true));
+    					String temp = mFileMag.getCurrentDir();
+    					mHandler.updateDirectory(mFileMag.getNextDir(temp, true));
     				}
     			});
     			cancel.setOnClickListener(new OnClickListener() {
@@ -604,14 +709,14 @@ public final class Main extends ListActivity {
     		case D_MENU_RENAME:
     		case F_MENU_RENAME:
     			dialog.setContentView(R.layout.input_layout);
-    			dialog.setTitle("Rename " + selected_list_item);
+    			dialog.setTitle("Rename " + mSelectedListItem);
     			dialog.setCancelable(false);
     			
     			ImageView rename_icon = (ImageView)dialog.findViewById(R.id.input_icon);
     			rename_icon.setImageResource(R.drawable.rename);
     			
     			TextView rename_label = (TextView)dialog.findViewById(R.id.input_label);
-    			rename_label.setText(flmg.getCurrentDir());
+    			rename_label.setText(mFileMag.getCurrentDir());
     			final EditText rename_input = (EditText)dialog.findViewById(R.id.input_inputText);
     			
     			Button rename_cancel = (Button)dialog.findViewById(R.id.input_cancel_b);
@@ -623,15 +728,15 @@ public final class Main extends ListActivity {
     					if(rename_input.getText().length() < 1)
     						dialog.dismiss();
     					
-    					if(flmg.renameTarget(flmg.getCurrentDir() +"/"+ selected_list_item, rename_input.getText().toString()) == 0) {
-    						Toast.makeText(Main.this, selected_list_item + " was renamed to " +rename_input.getText().toString(),
+    					if(mFileMag.renameTarget(mFileMag.getCurrentDir() +"/"+ mSelectedListItem, rename_input.getText().toString()) == 0) {
+    						Toast.makeText(Main.this, mSelectedListItem + " was renamed to " +rename_input.getText().toString(),
     								Toast.LENGTH_LONG).show();
     					}else
-    						Toast.makeText(Main.this, selected_list_item + " was not renamed", Toast.LENGTH_LONG).show();
+    						Toast.makeText(Main.this, mSelectedListItem + " was not renamed", Toast.LENGTH_LONG).show();
     						
     					dialog.dismiss();
-    					String temp = flmg.getCurrentDir();
-    					handler.updateDirectory(flmg.getNextDir(temp, true));
+    					String temp = mFileMag.getCurrentDir();
+    					mHandler.updateDirectory(mFileMag.getNextDir(temp, true));
     				}
     			});
     			rename_cancel.setOnClickListener(new OnClickListener() {
@@ -661,7 +766,7 @@ public final class Main extends ListActivity {
     					String temp = search_input.getText().toString();
     					
     					if (temp.length() > 0)
-    						handler.searchForFile(temp);
+    						mHandler.searchForFile(temp);
     					dialog.dismiss();
     				}
     			});
@@ -683,32 +788,32 @@ public final class Main extends ListActivity {
      */
     @Override
    public boolean onKeyDown(int keycode, KeyEvent event) {
-    	String current = flmg.getCurrentDir();
+    	String current = mFileMag.getCurrentDir();
     	
     	if(keycode == KeyEvent.KEYCODE_SEARCH) {
     		showDialog(SEARCH_B);
     		
     		return true;
     		
-    	} else if(keycode == KeyEvent.KEYCODE_BACK && use_back_key && !current.equals("/")) {
-    		if(handler.isMultiSelected()) {
-    			table.killMultiSelect(true);
+    	} else if(keycode == KeyEvent.KEYCODE_BACK && mUseBackKey && !current.equals("/")) {
+    		if(mHandler.isMultiSelected()) {
+    			mTable.killMultiSelect(true);
     			Toast.makeText(Main.this, "Multi-select is now off", Toast.LENGTH_SHORT).show();
     		}
     		
-    		handler.updateDirectory(flmg.getPreviousDir());
-    		path_label.setText(flmg.getCurrentDir());
+    		mHandler.updateDirectory(mFileMag.getPreviousDir());
+    		mPathLabel.setText(mFileMag.getCurrentDir());
     		
     		return true;
     		
-    	} else if(keycode == KeyEvent.KEYCODE_BACK && use_back_key && current.equals("/")) {
+    	} else if(keycode == KeyEvent.KEYCODE_BACK && mUseBackKey && current.equals("/")) {
     		Toast.makeText(Main.this, "Press back again to quit.", Toast.LENGTH_SHORT).show();
-    		use_back_key = false;
-    		path_label.setText(flmg.getCurrentDir());
+    		mUseBackKey = false;
+    		mPathLabel.setText(mFileMag.getCurrentDir());
     		
     		return false;
     		
-    	} else if(keycode == KeyEvent.KEYCODE_BACK && !use_back_key && current.equals("/")) {
+    	} else if(keycode == KeyEvent.KEYCODE_BACK && !mUseBackKey && current.equals("/")) {
     		finish();
     		
     		return false;
