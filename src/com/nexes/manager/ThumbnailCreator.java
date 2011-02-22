@@ -20,6 +20,7 @@ package com.nexes.manager;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.widget.ImageView;
 import android.os.Handler;
 
@@ -66,8 +67,8 @@ public class ThumbnailCreator {
 				synchronized (this) {
 					final SoftReference<Bitmap> thumb;
 					BitmapFactory.Options options = new BitmapFactory.Options();
-					options.inSampleSize = 32;
-										
+					options.inSampleSize = 64;
+		
 					thumb = (file.length() > 100000) ?
 							 new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageSrc, options)) : 
 							 new SoftReference<Bitmap>(Bitmap.createScaledBitmap(
@@ -77,7 +78,7 @@ public class ThumbnailCreator {
 									 						  false));
 					mCacheBitmap.add(thumb.get());
 					
-				   handle.post(new Runnable() {
+					handle.post(new Runnable() {
 						public void run() {
 							icon.setImageBitmap(thumb.get());
 						}
