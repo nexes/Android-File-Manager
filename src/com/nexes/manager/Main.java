@@ -29,6 +29,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.StatFs;
+import android.os.Environment;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -108,17 +110,14 @@ public final class Main extends ListActivity {
 	private String mCopiedTarget;
 	private String mZippedTarget;
 	private String mSelectedListItem;				//item from context menu
-	private TextView  mPathLabel, mDetailLabel;
+	private TextView  mPathLabel, mDetailLabel, mStorageLabel;
 
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
-        
-        if(getIntent().getAction().equals(Intent.ACTION_GET_CONTENT))
-        	mReturnIntent = true;
-        
+                
         /*read settings*/
         mSettings = getSharedPreferences(PREFS_NAME, 0);
         boolean hide = mSettings.getBoolean(PREFS_HIDDEN, false);
@@ -144,47 +143,45 @@ public final class Main extends ListActivity {
         /* register context menu for our list view */
         registerForContextMenu(getListView());
         
-        mPathLabel = (TextView)findViewById(R.id.path_label);
+        mStorageLabel = (TextView)findViewById(R.id.storage_label);
         mDetailLabel = (TextView)findViewById(R.id.detail_label);
+        mPathLabel = (TextView)findViewById(R.id.path_label);
         mPathLabel.setText("path: /sdcard");
         
-        mHandler.setUpdateLabel(mPathLabel, mDetailLabel);
+        updateStorageLabel();
         
-        /*buttons on the top row or the main activity*/
-        ImageButton help_b = (ImageButton)findViewById(R.id.help_button);
-        help_b.setOnClickListener(mHandler);
+        mHandler.setUpdateLabels(mPathLabel, mDetailLabel);
         
-        ImageButton home_b = (ImageButton)findViewById(R.id.home_button);
-        home_b.setOnClickListener(mHandler);
+        /* setup buttons */
+        int[] img_button_id = {R.id.help_button, R.id.home_button, 
+        					   R.id.back_button, R.id.info_button, 
+        					   R.id.manage_button, R.id.multiselect_button};
         
-        ImageButton back_b = (ImageButton)findViewById(R.id.back_button);        
-        back_b.setOnClickListener(mHandler);
+        int[] button_id = {R.id.hidden_copy, R.id.hidden_attach,
+        				   R.id.hidden_delete, R.id.hidden_move};
         
-        ImageButton info_b = (ImageButton)findViewById(R.id.info_button);
-        info_b.setOnClickListener(mHandler);
+        ImageButton[] bimg = new ImageButton[img_button_id.length];
+        Button[] bt = new Button[button_id.length];
         
-        ImageButton manage_b = (ImageButton)findViewById(R.id.manage_button);
-        manage_b.setOnClickListener(mHandler);
-        
-        ImageButton multi_b = (ImageButton)findViewById(R.id.multiselect_button);
-        multi_b.setOnClickListener(mHandler);
-        
-        /*hidden multiselect buttons*/
-        Button copy = (Button)findViewById(R.id.hidden_copy);
-        copy.setOnClickListener(mHandler);
-        
-        Button attach = (Button)findViewById(R.id.hidden_attach);
-        attach.setOnClickListener(mHandler);
-        
-        Button delete = (Button)findViewById(R.id.hidden_delete);
-        delete.setOnClickListener(mHandler);
-        
-        Button move = (Button)findViewById(R.id.hidden_move);
-        move.setOnClickListener(mHandler);
+        for(int i = 0; i < img_button_id.length; i++) {
+        	bimg[i] = (ImageButton)findViewById(img_button_id[i]);
+        	bimg[i].setOnClickListener(mHandler);
+
+        	if(i < 4) {
+        		bt[i] = (Button)findViewById(button_id[i]);
+        		bt[i].setOnClickListener(mHandler);
+        	}
+        }
+    
+        if(getIntent().getAction().equals(Intent.ACTION_GET_CONTENT)) {
+        	bimg[5].setVisibility(View.GONE);
+        	mReturnIntent = true;
+        }
     }
 
 	/*(non Java-Doc)
-	 * 
+	 * Returns the file that was selected to the intent that
+	 * called this activity. usually from the caller is another application.
 	 */
 	private void returnIntentResults(File data) {
 		mReturnIntent = false;
@@ -194,6 +191,21 @@ public final class Main extends ListActivity {
 		setResult(RESULT_OK, ret);
 		
 		finish();
+	}
+	
+	private void updateStorageLabel() {
+		long total, aval;
+		int kb = 1024;
+		
+		StatFs fs = new StatFs(Environment.
+								getExternalStorageDirectory().getPath());
+		
+		total = fs.getBlockCount() * (fs.getBlockSize() / kb);
+		aval = fs.getAvailableBlocks() * (fs.getBlockSize() / kb);
+		
+		mStorageLabel.setText(String.format("sdcard: Total %.2f GB " +
+							  "\t\tAvailable %.2f GB", 
+							  (double)total / (kb * kb), (double)aval / (kb * kb)));
 	}
 	
 	/**
