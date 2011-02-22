@@ -76,6 +76,7 @@ public final class Main extends ListActivity {
 	private static final String PREFS_COLOR = "color";
 	private static final String PREFS_THUMBNAIL = "thumbnail";
 	private static final String PREFS_SORT = "sort";
+	private static final String PREFS_STORAGE = "sdcard space";
 	
 	private static final int MENU_MKDIR =   0x00;			//option menu id
 	private static final int MENU_SETTING = 0x01;			//option menu id
@@ -122,6 +123,7 @@ public final class Main extends ListActivity {
         mSettings = getSharedPreferences(PREFS_NAME, 0);
         boolean hide = mSettings.getBoolean(PREFS_HIDDEN, false);
         boolean thumb = mSettings.getBoolean(PREFS_THUMBNAIL, true);
+        int space = mSettings.getInt(PREFS_STORAGE, View.VISIBLE);
         int color = mSettings.getInt(PREFS_COLOR, -1);
         int sort = mSettings.getInt(PREFS_SORT, 0);
         
@@ -149,6 +151,7 @@ public final class Main extends ListActivity {
         mPathLabel.setText("path: /sdcard");
         
         updateStorageLabel();
+        mStorageLabel.setVisibility(space);
         
         mHandler.setUpdateLabels(mPathLabel, mDetailLabel);
         
@@ -468,8 +471,7 @@ public final class Main extends ListActivity {
     	SharedPreferences.Editor editor = mSettings.edit();
     	boolean check;
     	boolean thumbnail;
-    	int color;
-    	int sort;
+    	int color, sort, space;
     	
     	/* resultCode must equal RESULT_CANCELED because the only way
     	 * out of that activity is pressing the back button on the phone
@@ -481,17 +483,20 @@ public final class Main extends ListActivity {
     		thumbnail = data.getBooleanExtra("THUMBNAIL", true);
     		color = data.getIntExtra("COLOR", -1);
     		sort = data.getIntExtra("SORT", 0);
+    		space = data.getIntExtra("SPACE", View.VISIBLE);
     		
     		editor.putBoolean(PREFS_HIDDEN, check);
     		editor.putBoolean(PREFS_THUMBNAIL, thumbnail);
     		editor.putInt(PREFS_COLOR, color);
     		editor.putInt(PREFS_SORT, sort);
+    		editor.putInt(PREFS_STORAGE, space);
     		editor.commit();
     		  		
     		mFileMag.setShowHiddenFiles(check);
     		mFileMag.setSortType(sort);
     		mHandler.setTextColor(color);
     		mHandler.setShowThumbnails(thumbnail);
+    		mStorageLabel.setVisibility(space);
     		mHandler.updateDirectory(mFileMag.getNextDir(mFileMag.getCurrentDir(), true));
     	}
     }
@@ -530,6 +535,7 @@ public final class Main extends ListActivity {
     			settings_int.putExtra("THUMBNAIL", mSettings.getBoolean(PREFS_THUMBNAIL, true));
     			settings_int.putExtra("COLOR", mSettings.getInt(PREFS_COLOR, -1));
     			settings_int.putExtra("SORT", mSettings.getInt(PREFS_SORT, 0));
+    			settings_int.putExtra("SPACE", mSettings.getInt(PREFS_STORAGE, View.VISIBLE));
     			
     			startActivityForResult(settings_int, SETTING_REQ);
     			return true;

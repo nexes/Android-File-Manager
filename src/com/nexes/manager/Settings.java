@@ -29,18 +29,17 @@ import android.view.View.OnClickListener;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.CompoundButton;
-import android.util.Log;
 
 public class Settings extends Activity {
-	private boolean hidden_changed = false;
-	private boolean color_changed = false;
-	private boolean thumbnail_changed = false;
-	private boolean sort_changed = false;
+	private boolean mHiddenChanged = false;
+	private boolean mColorChanged = false;
+	private boolean mThumbnailChanged = false;
+	private boolean mSortChanged = false;
+	private boolean mSpaceChanged = false;
 	
 	private boolean hidden_state;
 	private boolean thumbnail_state;
-	private int color_state;
-	private int sort_state;
+	private int color_state, sort_state, mSpaceState;
 	private Intent is = new Intent();
 	
 	@Override
@@ -53,14 +52,17 @@ public class Settings extends Activity {
 		thumbnail_state = i.getExtras().getBoolean("THUMBNAIL");
 		color_state = i.getExtras().getInt("COLOR");
 		sort_state = i.getExtras().getInt("SORT");
+		mSpaceState = i.getExtras().getInt("SPACE");
 				
 		final CheckBox hidden_bx = (CheckBox)findViewById(R.id.setting_hidden_box);
 		final CheckBox thumbnail_bx = (CheckBox)findViewById(R.id.setting_thumbnail_box);
+		final CheckBox space_bx = (CheckBox)findViewById(R.id.setting_storage_box);
 		final ImageButton color_bt = (ImageButton)findViewById(R.id.setting_text_color_button);
 		final ImageButton sort_bt = (ImageButton)findViewById(R.id.settings_sort_button);
-
+		
 		hidden_bx.setChecked(hidden_state);
 		thumbnail_bx.setChecked(thumbnail_state);
+		space_bx.setChecked(mSpaceState == View.VISIBLE);
 		
 		color_bt.setOnClickListener(new OnClickListener() {
 			@Override
@@ -79,43 +81,43 @@ public class Settings extends Activity {
 							case 0:
 								color_state = Color.WHITE;
 								is.putExtra("COLOR", color_state);
-								color_changed = true;
+								mColorChanged = true;
 								
 								break;
 							case 1:
 								color_state = Color.MAGENTA;
 								is.putExtra("COLOR", color_state);
-								color_changed = true;
+								mColorChanged = true;
 								
 								break;
 							case 2:
 								color_state = Color.YELLOW;
 								is.putExtra("COLOR", color_state);
-								color_changed = true;
+								mColorChanged = true;
 								
 								break;
 							case 3:
 								color_state = Color.RED;
 								is.putExtra("COLOR", color_state);
-								color_changed = true;
+								mColorChanged = true;
 								
 								break;
 							case 4:
 								color_state = Color.CYAN;
 								is.putExtra("COLOR", color_state);
-								color_changed = true;
+								mColorChanged = true;
 								
 								break;
 							case 5:
 								color_state = Color.BLUE;
 								is.putExtra("COLOR", color_state);
-								color_changed = true;
+								mColorChanged = true;
 								
 								break;
 							case 6:
 								color_state = Color.GREEN;
 								is.putExtra("COLOR", color_state);
-								color_changed = true;
+								mColorChanged = true;
 								
 								break;
 						}
@@ -128,21 +130,34 @@ public class Settings extends Activity {
 		
 		hidden_bx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			@Override
-			public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
-				hidden_state = hidden_bx.isChecked();
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				hidden_state = isChecked;
 				
 				is.putExtra("HIDDEN", hidden_state);
-				hidden_changed = true;
+				mHiddenChanged = true;
 			}
 		});
 		
 		thumbnail_bx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				thumbnail_state = thumbnail_bx.isChecked();
+				thumbnail_state = isChecked;
 				
 				is.putExtra("THUMBNAIL", thumbnail_state);
-				thumbnail_changed = true;
+				mThumbnailChanged = true;
+			}
+		});
+		
+		space_bx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if(isChecked) 
+					mSpaceState = View.VISIBLE;
+				else 
+					mSpaceState = View.GONE;
+				
+				mSpaceChanged = true;
+				is.putExtra("SPACE", mSpaceState);				
 			}
 		});
 		
@@ -160,19 +175,19 @@ public class Settings extends Activity {
 						switch(index) {
 						case 0:
 							sort_state = 0;
-							sort_changed = true;
+							mSortChanged = true;
 							is.putExtra("SORT", sort_state);
 							break;
 							
 						case 1:
 							sort_state = 1;
-							sort_changed = true;
+							mSortChanged = true;
 							is.putExtra("SORT", sort_state);
 							break;
 							
 						case 2:
 							sort_state = 2;
-							sort_changed = true;
+							mSortChanged = true;
 							is.putExtra("SORT", sort_state);
 							break;
 						}
@@ -188,16 +203,19 @@ public class Settings extends Activity {
 	protected void onResume() {
 		super.onResume();
 		
-		if(!hidden_changed)
+		if(!mSpaceChanged)
+			is.putExtra("SPACE", mSpaceState);
+		
+		if(!mHiddenChanged)
 			is.putExtra("HIDDEN", hidden_state);
 		
-		if(!color_changed)
+		if(!mColorChanged)
 			is.putExtra("COLOR", color_state);
 		
-		if(!thumbnail_changed)
+		if(!mThumbnailChanged)
 			is.putExtra("THUMBNAIL", thumbnail_state);
 		
-		if(!sort_changed)
+		if(!mSortChanged)
 			is.putExtra("SORT", sort_state);
 			
 		setResult(RESULT_CANCELED, is);
