@@ -74,18 +74,18 @@ public class EventHandler implements OnClickListener {
 	private static final int DELETE_TYPE = 		0x05;
 	private static final int MANAGE_DIALOG =	 0x06;
 	
-	private final Context context;
-	private final FileManager file_mg;
-	private TableRow delegate;
+	private final Context mContext;
+	private final FileManager mFileMang;
+	private TableRow mDelegate;
 	private boolean multi_select_flag = false;
 	private boolean delete_after_copy = false;
 	private boolean thumbnail_flag = true;
-	private int color = Color.WHITE;
+	private int mColor = Color.WHITE;
 	
 	//the list used to feed info into the array adapter and when multi-select is on
-	private ArrayList<String> data_source, multiselect_data;
-	private TextView path_label;
-	private TextView info_label;
+	private ArrayList<String> mDataSource, mMultiSelectData;
+	private TextView mPathLabel;
+	private TextView mInfoLabel;
 
 	
 	/**
@@ -96,10 +96,10 @@ public class EventHandler implements OnClickListener {
 	 * @param manager	The FileManager object that was instantiated from Main
 	 */
 	public EventHandler(Context context, final FileManager manager) {
-		this.context = context;
-		file_mg = manager;
+		mContext = context;
+		mFileMang = manager;
 		
-		data_source = new ArrayList<String>(file_mg.getHomeDir());
+		mDataSource = new ArrayList<String>(mFileMang.getHomeDir());
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class EventHandler implements OnClickListener {
 	 * @param adapter	The TableRow object
 	 */
 	public void setListAdapter(TableRow adapter) {
-		delegate = adapter;
+		mDelegate = adapter;
 	}
 	
 	/**
@@ -121,9 +121,9 @@ public class EventHandler implements OnClickListener {
 	 * @param path	The label to update as the directory changes
 	 * @param label	the label to update information
 	 */
-	public void setUpdateLabel(TextView path, TextView label) {
-		path_label = path;
-		info_label = label;
+	public void setUpdateLabels(TextView path, TextView label) {
+		mPathLabel = path;
+		mInfoLabel = label;
 	}
 	
 	/**
@@ -131,7 +131,7 @@ public class EventHandler implements OnClickListener {
 	 * @param color
 	 */
 	public void setTextColor(int color) {
-		this.color = color;
+		mColor = color;
 	}
 	
 	/**
@@ -172,7 +172,7 @@ public class EventHandler implements OnClickListener {
 	 * @return	returns true if the user is holding multiple objects (multi-select)
 	 */
 	public boolean hasMultiSelectData() {
-		return (multiselect_data != null && multiselect_data.size() > 0);
+		return (mMultiSelectData != null && mMultiSelectData.size() > 0);
 	}
 	
 	/**
@@ -215,11 +215,11 @@ public class EventHandler implements OnClickListener {
 		String[] data;
 		int index = 1;
 		
-		if (multiselect_data.size() > 0) {
-			data = new String[multiselect_data.size() + 1];
+		if (mMultiSelectData.size() > 0) {
+			data = new String[mMultiSelectData.size() + 1];
 			data[0] = newLocation;
 			
-			for(String s : multiselect_data)
+			for(String s : mMultiSelectData)
 				data[index++] = s;
 			
 			new BackgroundWork(COPY_TYPE).execute(data);
@@ -267,38 +267,38 @@ public class EventHandler implements OnClickListener {
 		switch(v.getId()) {
 		
 			case R.id.back_button:			
-				if (file_mg.getCurrentDir() != "/") {
+				if (mFileMang.getCurrentDir() != "/") {
 					if(multi_select_flag) {
-						delegate.killMultiSelect(true);
-						Toast.makeText(context, "Multi-select is now off", 
+						mDelegate.killMultiSelect(true);
+						Toast.makeText(mContext, "Multi-select is now off", 
 									   Toast.LENGTH_SHORT).show();
 					}
-					updateDirectory(file_mg.getPreviousDir());
-					if(path_label != null)
-						path_label.setText(file_mg.getCurrentDir());
+					updateDirectory(mFileMang.getPreviousDir());
+					if(mPathLabel != null)
+						mPathLabel.setText(mFileMang.getCurrentDir());
 				}
 				break;
 			
 			case R.id.home_button:		
 				if(multi_select_flag) {
-					delegate.killMultiSelect(true);
-					Toast.makeText(context, "Multi-select is now off", 
+					mDelegate.killMultiSelect(true);
+					Toast.makeText(mContext, "Multi-select is now off", 
 								   Toast.LENGTH_SHORT).show();
 				}
-				updateDirectory(file_mg.getHomeDir());
-				if(path_label != null)
-					path_label.setText(file_mg.getCurrentDir());
+				updateDirectory(mFileMang.getHomeDir());
+				if(mPathLabel != null)
+					mPathLabel.setText(mFileMang.getCurrentDir());
 				break;
 				
 			case R.id.info_button:
-				Intent info = new Intent(context, DirectoryInfo.class);
-				info.putExtra("PATH_NAME", file_mg.getCurrentDir());
-				context.startActivity(info);
+				Intent info = new Intent(mContext, DirectoryInfo.class);
+				info.putExtra("PATH_NAME", mFileMang.getCurrentDir());
+				mContext.startActivity(info);
 				break;
 				
 			case R.id.help_button:
-				Intent help = new Intent(context, HelpManager.class);
-				context.startActivity(help);
+				Intent help = new Intent(mContext, HelpManager.class);
+				mContext.startActivity(help);
 				break;
 				
 			case R.id.manage_button:
@@ -307,11 +307,11 @@ public class EventHandler implements OnClickListener {
 				
 			case R.id.multiselect_button:			
 				if(multi_select_flag) {
-					delegate.killMultiSelect(true);				
+					mDelegate.killMultiSelect(true);				
 					
 				} else {
 					LinearLayout hidden_lay = 
-						(LinearLayout)((Activity) context).findViewById(R.id.hidden_buttons);
+						(LinearLayout)((Activity) mContext).findViewById(R.id.hidden_buttons);
 					
 					multi_select_flag = true;
 					hidden_lay.setVisibility(LinearLayout.VISIBLE);
@@ -323,13 +323,13 @@ public class EventHandler implements OnClickListener {
 			 */
 			case R.id.hidden_attach:
 				/* check if user selected objects before going further */
-				if(multiselect_data == null || multiselect_data.isEmpty()) {
-					delegate.killMultiSelect(true);
+				if(mMultiSelectData == null || mMultiSelectData.isEmpty()) {
+					mDelegate.killMultiSelect(true);
 					break;
 				}
 				
 				ArrayList<Uri> uris = new ArrayList<Uri>();
-				int length = multiselect_data.size();
+				int length = mMultiSelectData.size();
 				Intent mail_int = new Intent();
     			
     			mail_int.setAction(android.content.Intent.ACTION_SEND_MULTIPLE);
@@ -338,48 +338,48 @@ public class EventHandler implements OnClickListener {
     			mail_int.putExtra(Intent.EXTRA_SUBJECT, " ");
     			
     			for(int i = 0; i < length; i++) {
-    				File file = new File(multiselect_data.get(i));
+    				File file = new File(mMultiSelectData.get(i));
     				uris.add(Uri.fromFile(file));
     			}
     			
     			mail_int.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-    			context.startActivity(Intent.createChooser(mail_int, 
+    			mContext.startActivity(Intent.createChooser(mail_int, 
     													   "Email using..."));
     			
-    			delegate.killMultiSelect(true);
+    			mDelegate.killMultiSelect(true);
 				break;
 				
 			case R.id.hidden_move:
 			case R.id.hidden_copy:
 				/* check if user selected objects before going further */
-				if(multiselect_data == null || multiselect_data.isEmpty()) {
-					delegate.killMultiSelect(true);
+				if(mMultiSelectData == null || mMultiSelectData.isEmpty()) {
+					mDelegate.killMultiSelect(true);
 					break;
 				}
 				
 				if(v.getId() == R.id.hidden_move)
 					delete_after_copy = true;
 					
-				info_label.setText("Holding " + multiselect_data.size() + 
+				mInfoLabel.setText("Holding " + mMultiSelectData.size() + 
 								   " file(s)");
 				
-				delegate.killMultiSelect(false);
+				mDelegate.killMultiSelect(false);
 				break;
 				
 			case R.id.hidden_delete:	
 				/* check if user selected objects before going further */
-				if(multiselect_data == null || multiselect_data.isEmpty()) {
-					delegate.killMultiSelect(true);
+				if(mMultiSelectData == null || mMultiSelectData.isEmpty()) {
+					mDelegate.killMultiSelect(true);
 					break;
 				}
 
-				final String[] data = new String[multiselect_data.size()];
+				final String[] data = new String[mMultiSelectData.size()];
 				int at = 0;
 				
-				for(String string : multiselect_data)
+				for(String string : mMultiSelectData)
 					data[at++] = string;
 				
-				AlertDialog.Builder builder = new AlertDialog.Builder(context);
+				AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
 				builder.setMessage("Are you sure you want to delete " +
 								    data.length + " files? This cannot be " +
 								    "undone.");
@@ -388,13 +388,13 @@ public class EventHandler implements OnClickListener {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						new BackgroundWork(DELETE_TYPE).execute(data);
-						delegate.killMultiSelect(true);
+						mDelegate.killMultiSelect(true);
 					}
 				});
 				builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						delegate.killMultiSelect(true);
+						mDelegate.killMultiSelect(true);
 						dialog.cancel();
 					}
 				});
@@ -412,10 +412,10 @@ public class EventHandler implements OnClickListener {
 	 */
 	public String getData(int position) {
 		
-		if(position > data_source.size() - 1 || position < 0)
+		if(position > mDataSource.size() - 1 || position < 0)
 			return null;
 		
-		return data_source.get(position);
+		return mDataSource.get(position);
 	}
 
 	/**
@@ -425,13 +425,13 @@ public class EventHandler implements OnClickListener {
 	 * @param content	an ArrayList of the file/folders in the current directory.
 	 */
 	public void updateDirectory(ArrayList<String> content) {	
-		if(!data_source.isEmpty())
-			data_source.clear();
+		if(!mDataSource.isEmpty())
+			mDataSource.clear();
 		
 		for(String data : content)
-			data_source.add(data);
+			mDataSource.add(data);
 		
-		delegate.notifyDataSetChanged();
+		mDelegate.notifyDataSetChanged();
 	}
 
 	/**
@@ -450,7 +450,7 @@ public class EventHandler implements OnClickListener {
     	    	//to display WIFI info. Also uncomment and change case number below
     	    	CharSequence[] options = {"Process Info", /*"Wifi Info",*/ "Application backup"};
     	    	
-    	    	builder = new AlertDialog.Builder(context);
+    	    	builder = new AlertDialog.Builder(mContext);
     	    	builder.setTitle("Tool Box");
     	    	builder.setIcon(R.drawable.toolbox);
     	    	builder.setItems(options, new DialogInterface.OnClickListener() {
@@ -460,8 +460,8 @@ public class EventHandler implements OnClickListener {
     					
     					switch(index) {
     						case 0:
-    							i = new Intent(context, ProcessManager.class);
-    							context.startActivity(i);
+    							i = new Intent(mContext, ProcessManager.class);
+    							mContext.startActivity(i);
     							break;
     	/*
     						case 1:
@@ -470,8 +470,8 @@ public class EventHandler implements OnClickListener {
     							break;
     	*/
     						case 1:
-    							i = new Intent(context, ApplicationBackup.class);
-    							context.startActivity(i);
+    							i = new Intent(mContext, ApplicationBackup.class);
+    							mContext.startActivity(i);
     							break;
     					}
     				}
@@ -509,7 +509,7 @@ public class EventHandler implements OnClickListener {
     	private ThumbnailCreator thumbnail;
     	
     	public TableRow() {
-    		super(context, R.layout.tablerow, data_source);
+    		super(mContext, R.layout.tablerow, mDataSource);
     		
     		thumbnail = new ThumbnailCreator(32, 32);
     	}
@@ -518,15 +518,15 @@ public class EventHandler implements OnClickListener {
     		if(positions == null)
     			positions = new ArrayList<Integer>();
     		
-    		if(multiselect_data == null) {
+    		if(mMultiSelectData == null) {
     			positions.add(index);
     			add_multiSelect_file(path);
     			
-    		} else if(multiselect_data.contains(path)) {
+    		} else if(mMultiSelectData.contains(path)) {
     			if(positions.contains(index))
     				positions.remove(new Integer(index));
     			
-    			multiselect_data.remove(path);
+    			mMultiSelectData.remove(path);
     			
     		} else {
     			positions.add(index);
@@ -546,7 +546,7 @@ public class EventHandler implements OnClickListener {
     	 * 					so we can later paste it to another folder.
     	 */
     	public void killMultiSelect(boolean clearData) {
-    		hidden_layout = (LinearLayout)((Activity)context).findViewById(R.id.hidden_buttons);
+    		hidden_layout = (LinearLayout)((Activity)mContext).findViewById(R.id.hidden_buttons);
     		hidden_layout.setVisibility(LinearLayout.GONE);
     		multi_select_flag = false;
     		
@@ -554,8 +554,8 @@ public class EventHandler implements OnClickListener {
     			positions.clear();
     		
     		if(clearData)
-    			if(multiselect_data != null && !multiselect_data.isEmpty())
-    				multiselect_data.clear();
+    			if(mMultiSelectData != null && !mMultiSelectData.isEmpty())
+    				mMultiSelectData.clear();
     		
     		notifyDataSetChanged();
     	}
@@ -577,15 +577,15 @@ public class EventHandler implements OnClickListener {
     	public View getView(int position, View convertView, ViewGroup parent) {
     		ViewHolder holder;
     		int num_items = 0;
-    		String temp = file_mg.getCurrentDir();
-    		File file = new File(temp + "/" + data_source.get(position));
+    		String temp = mFileMang.getCurrentDir();
+    		File file = new File(temp + "/" + mDataSource.get(position));
     		String[] list = file.list();
     		
     		if(list != null)
     			num_items = list.length;
    
     		if(convertView == null) {
-    			LayoutInflater inflater = (LayoutInflater) context.
+    			LayoutInflater inflater = (LayoutInflater) mContext.
     						getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     			convertView = inflater.inflate(R.layout.tablerow, parent, false);
     			
@@ -615,13 +615,10 @@ public class EventHandler implements OnClickListener {
     		else
     			holder.mSelect.setVisibility(ImageView.GONE);
 
-    		holder.topView.setTextColor(color);
-    		holder.bottomView.setTextColor(color);
+    		holder.topView.setTextColor(mColor);
+    		holder.bottomView.setTextColor(mColor);
     		
-    		if(file.isDirectory()) {
-    			holder.icon.setImageResource(R.drawable.folder);
-    			
-    		} else if(file.isFile()) {
+    		if(file.isFile()) {
     			String ext = file.toString();
     			String sub_ext = ext.substring(ext.lastIndexOf(".") + 1);
     			
@@ -647,7 +644,7 @@ public class EventHandler implements OnClickListener {
     				if(thumbnail_flag) {
 	    				Bitmap thumb = thumbnail.hasBitmapCached(position);
 	    				
-	    				if(thumb == null) {  					
+	    				if(thumb == null) {
 	    					final Handler mHandler = new Handler();
 	   						thumbnail.setBitmapToImageView(file.getPath(), 
 	   													   mHandler, 
@@ -707,6 +704,9 @@ public class EventHandler implements OnClickListener {
     			} else {
     				holder.icon.setImageResource(R.drawable.text);
     			}
+    			
+    		} else if (file.isDirectory()) {
+    			holder.icon.setImageResource(R.drawable.folder);
     		}
     		    		
     		String permission = getFilePermissions(file);
@@ -740,10 +740,10 @@ public class EventHandler implements OnClickListener {
     	}
     	
     	private void add_multiSelect_file(String src) {
-    		if(multiselect_data == null)
-    			multiselect_data = new ArrayList<String>();
+    		if(mMultiSelectData == null)
+    			mMultiSelectData = new ArrayList<String>();
     		
-    		multiselect_data.add(src);
+    		mMultiSelectData.add(src);
     	}
     }
     
@@ -778,37 +778,37 @@ public class EventHandler implements OnClickListener {
     		
     		switch(type) {
     			case SEARCH_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Searching", 
+    				pr_dialog = ProgressDialog.show(mContext, "Searching", 
     												"Searching current file system...",
     												true, true);
     				break;
     				
     			case COPY_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Copying", 
+    				pr_dialog = ProgressDialog.show(mContext, "Copying", 
     												"Copying file...", 
     												true, false);
     				break;
     				
     			case UNZIP_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Unzipping", 
+    				pr_dialog = ProgressDialog.show(mContext, "Unzipping", 
     												"Unpacking zip file please wait...",
     												true, false);
     				break;
     				
     			case UNZIPTO_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Unzipping", 
+    				pr_dialog = ProgressDialog.show(mContext, "Unzipping", 
     												"Unpacking zip file please wait...",
     												true, false);
     				break;
     			
     			case ZIP_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Zipping", 
+    				pr_dialog = ProgressDialog.show(mContext, "Zipping", 
     												"Zipping folder...", 
     												true, false);
     				break;
     				
     			case DELETE_TYPE:
-    				pr_dialog = ProgressDialog.show(context, "Deleting", 
+    				pr_dialog = ProgressDialog.show(mContext, "Deleting", 
     												"Deleting files...", 
     												true, false);
     				break;
@@ -824,47 +824,47 @@ public class EventHandler implements OnClickListener {
 			switch(type) {
 				case SEARCH_TYPE:
 					file_name = params[0];
-					ArrayList<String> found = file_mg.searchInDirectory(file_mg.getCurrentDir(), 
+					ArrayList<String> found = mFileMang.searchInDirectory(mFileMang.getCurrentDir(), 
 																	    file_name);
 					return found;
 					
 				case COPY_TYPE:
 					int len = params.length;
 					
-					if(multiselect_data != null && !multiselect_data.isEmpty()) {
+					if(mMultiSelectData != null && !mMultiSelectData.isEmpty()) {
 						for(int i = 1; i < len; i++) {
-							copy_rtn = file_mg.copyToDirectory(params[i], params[0]);
+							copy_rtn = mFileMang.copyToDirectory(params[i], params[0]);
 							
 							if(delete_after_copy)
-								file_mg.deleteTarget(params[i]);
+								mFileMang.deleteTarget(params[i]);
 						}
 					} else {
-						copy_rtn = file_mg.copyToDirectory(params[0], params[1]);
+						copy_rtn = mFileMang.copyToDirectory(params[0], params[1]);
 						
 						if(delete_after_copy)
-							file_mg.deleteTarget(params[0]);
+							mFileMang.deleteTarget(params[0]);
 					}
 					
 					delete_after_copy = false;
 					return null;
 					
 				case UNZIP_TYPE:
-					file_mg.extractZipFiles(params[0], params[1]);
+					mFileMang.extractZipFiles(params[0], params[1]);
 					return null;
 					
 				case UNZIPTO_TYPE:
-					file_mg.extractZipFilesFromDir(params[0], params[1], params[2]);
+					mFileMang.extractZipFilesFromDir(params[0], params[1], params[2]);
 					return null;
 					
 				case ZIP_TYPE:
-					file_mg.createZipFile(params[0]);
+					mFileMang.createZipFile(params[0]);
 					return null;
 					
 				case DELETE_TYPE:
 					int size = params.length;
 					
 					for(int i = 0; i < size; i++)
-						file_mg.deleteTarget(params[i]);
+						mFileMang.deleteTarget(params[i]);
 					
 					return null;
 			}
@@ -883,7 +883,7 @@ public class EventHandler implements OnClickListener {
 			switch(type) {
 				case SEARCH_TYPE:				
 					if(len == 0) {
-						Toast.makeText(context, "Couldn't find " + file_name, 
+						Toast.makeText(mContext, "Couldn't find " + file_name, 
 											Toast.LENGTH_SHORT).show();
 					
 					} else {
@@ -894,13 +894,13 @@ public class EventHandler implements OnClickListener {
 							names[i] = entry.substring(entry.lastIndexOf("/") + 1, entry.length());
 						}
 						
-						AlertDialog.Builder builder = new AlertDialog.Builder(context);
+						AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
 						builder.setTitle("Found " + len + " file(s)");
 						builder.setItems(names, new DialogInterface.OnClickListener() {
 							
 							public void onClick(DialogInterface dialog, int position) {
 								String path = file.get(position);
-								updateDirectory(file_mg.getNextDir(path.
+								updateDirectory(mFileMang.getNextDir(path.
 													substring(0, path.lastIndexOf("/")), true));
 							}
 						});
@@ -913,45 +913,45 @@ public class EventHandler implements OnClickListener {
 					break;
 					
 				case COPY_TYPE:
-					if(multiselect_data != null && !multiselect_data.isEmpty()) {
+					if(mMultiSelectData != null && !mMultiSelectData.isEmpty()) {
 						multi_select_flag = false;
-						multiselect_data.clear();
+						mMultiSelectData.clear();
 					}
 					
 					if(copy_rtn == 0)
-						Toast.makeText(context, "File successfully copied and pasted", 
+						Toast.makeText(mContext, "File successfully copied and pasted", 
 											Toast.LENGTH_SHORT).show();
 					else
-						Toast.makeText(context, "Copy pasted failed", Toast.LENGTH_SHORT).show();
+						Toast.makeText(mContext, "Copy pasted failed", Toast.LENGTH_SHORT).show();
 					
 					pr_dialog.dismiss();
-					info_label.setText("");
+					mInfoLabel.setText("");
 					break;
 					
 				case UNZIP_TYPE:
-					updateDirectory(file_mg.getNextDir(file_mg.getCurrentDir(), true));
+					updateDirectory(mFileMang.getNextDir(mFileMang.getCurrentDir(), true));
 					pr_dialog.dismiss();
 					break;
 					
 				case UNZIPTO_TYPE:
-					updateDirectory(file_mg.getNextDir(file_mg.getCurrentDir(), true));
+					updateDirectory(mFileMang.getNextDir(mFileMang.getCurrentDir(), true));
 					pr_dialog.dismiss();
 					break;
 					
 				case ZIP_TYPE:
-					updateDirectory(file_mg.getNextDir(file_mg.getCurrentDir(), true));
+					updateDirectory(mFileMang.getNextDir(mFileMang.getCurrentDir(), true));
 					pr_dialog.dismiss();
 					break;
 					
 				case DELETE_TYPE:
-					if(multiselect_data != null && !multiselect_data.isEmpty()) {
-						multiselect_data.clear();
+					if(mMultiSelectData != null && !mMultiSelectData.isEmpty()) {
+						mMultiSelectData.clear();
 						multi_select_flag = false;
 					}
 					
-					updateDirectory(file_mg.getNextDir(file_mg.getCurrentDir(), true));
+					updateDirectory(mFileMang.getNextDir(mFileMang.getCurrentDir(), true));
 					pr_dialog.dismiss();
-					info_label.setText("");
+					mInfoLabel.setText("");
 					break;
 			}
 		}

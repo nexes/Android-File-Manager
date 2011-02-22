@@ -56,11 +56,11 @@ public class FileManager {
 	private static final int SORT_ALPHA = 	1;
 	private static final int SORT_TYPE = 	2;
 	
-	private boolean show_hidden = false;
-	private int sort_type = SORT_ALPHA;
-	private double dir_size = 0;
-	private Stack<String> path_stack;
-	private ArrayList<String> dir_content;
+	private boolean mShowHiddenFiles = false;
+	private int mSortType = SORT_ALPHA;
+	private long mDirSize = 0;
+	private Stack<String> mPathStack;
+	private ArrayList<String> mDirContent;
 	
 	/**
 	 * Constructs an object of the class
@@ -68,11 +68,11 @@ public class FileManager {
 	 * this class uses a stack to handle the navigation of directories.
 	 */
 	public FileManager() {
-		dir_content = new ArrayList<String>();
-		path_stack = new Stack<String>();
+		mDirContent = new ArrayList<String>();
+		mPathStack = new Stack<String>();
 		
-		path_stack.push("/");
-		path_stack.push(path_stack.peek() + "sdcard");
+		mPathStack.push("/");
+		mPathStack.push(mPathStack.peek() + "sdcard");
 	}
 	
 	/**
@@ -80,7 +80,7 @@ public class FileManager {
 	 * @return the current directory
 	 */
 	public String getCurrentDir() {
-		return path_stack.peek();
+		return mPathStack.peek();
 	}
 	
 	/**
@@ -89,9 +89,9 @@ public class FileManager {
 	 */
 	public ArrayList<String> getHomeDir() {
 		//This will eventually be placed as a settings item
-		path_stack.clear();
-		path_stack.push("/");
-		path_stack.push(path_stack.peek() + "sdcard");
+		mPathStack.clear();
+		mPathStack.push("/");
+		mPathStack.push(mPathStack.peek() + "sdcard");
 		
 		return populate_list();
 	}
@@ -102,7 +102,7 @@ public class FileManager {
 	 * @param choice	true if user is veiwing hidden files, false otherwise
 	 */
 	public void setShowHiddenFiles(boolean choice) {
-		show_hidden = choice;
+		mShowHiddenFiles = choice;
 	}
 	
 	/**
@@ -110,7 +110,7 @@ public class FileManager {
 	 * @param type
 	 */
 	public void setSortType(int type) {
-		sort_type = type;
+		mSortType = type;
 	}
 	
 	/**
@@ -118,13 +118,13 @@ public class FileManager {
 	 * @return	returns the previous path
 	 */
 	public ArrayList<String> getPreviousDir() {
-		int size = path_stack.size();
+		int size = mPathStack.size();
 		
 		if (size >= 2)
-			path_stack.pop();
+			mPathStack.pop();
 		
 		else if(size == 0)
-			path_stack.push("/");
+			mPathStack.push("/");
 		
 		return populate_list();
 	}
@@ -136,17 +136,17 @@ public class FileManager {
 	 * @return
 	 */
 	public ArrayList<String> getNextDir(String path, boolean isFullPath) {
-		int size = path_stack.size();
+		int size = mPathStack.size();
 		
-		if(!path.equals(path_stack.peek()) && !isFullPath) {
+		if(!path.equals(mPathStack.peek()) && !isFullPath) {
 			if(size == 1)
-				path_stack.push("/" + path);
+				mPathStack.push("/" + path);
 			else
-				path_stack.push(path_stack.peek() + "/" + path);
+				mPathStack.push(mPathStack.peek() + "/" + path);
 		}
 		
-		else if(!path.equals(path_stack.peek()) && isFullPath) {
-			path_stack.push(path);
+		else if(!path.equals(mPathStack.peek()) && isFullPath) {
+			mPathStack.push(path);
 		}
 		
 		return populate_list();
@@ -431,7 +431,7 @@ public class FileManager {
 	 * @return
 	 */
 	public boolean isDirectory(String name) {
-		return new File(path_stack.peek() + "/" + name).isDirectory();
+		return new File(mPathStack.peek() + "/" + name).isDirectory();
 	}
 		
 	/**
@@ -483,10 +483,10 @@ public class FileManager {
 	 * @param path
 	 * @return
 	 */
-	public double getDirSize(String path) {
+	public long getDirSize(String path) {
 		get_dir_size(new File(path));
 
-		return dir_size;
+		return mDirSize;
 	}
 	
 	
@@ -526,10 +526,10 @@ public class FileManager {
 	 */
 	private ArrayList<String> populate_list() {
 		
-		if(!dir_content.isEmpty())
-			dir_content.clear();
+		if(!mDirContent.isEmpty())
+			mDirContent.clear();
 		
-		File file = new File(path_stack.peek());
+		File file = new File(mPathStack.peek());
 		
 		if(file.exists() && file.canRead()) {
 			String[] list = file.list();
@@ -537,53 +537,53 @@ public class FileManager {
 			
 			/* add files/folder to arraylist depending on hidden status */
 			for (int i = 0; i < len; i++) {
-				if(!show_hidden) {
+				if(!mShowHiddenFiles) {
 					if(list[i].toString().charAt(0) != '.')
-						dir_content.add(list[i]);
+						mDirContent.add(list[i]);
 					
 				} else {
-					dir_content.add(list[i]);
+					mDirContent.add(list[i]);
 				}
 			}
 			
 			/* sort the arraylist that was made from above for loop */
-			switch(sort_type) {
+			switch(mSortType) {
 				case SORT_NONE:
 					//no sorting needed
 					break;
 					
 				case SORT_ALPHA:
-					Object[] tt = dir_content.toArray();
-					dir_content.clear();
+					Object[] tt = mDirContent.toArray();
+					mDirContent.clear();
 					
 					Arrays.sort(tt, alph);
 					
 					for (Object a : tt){
-						dir_content.add((String)a);
+						mDirContent.add((String)a);
 					}
 					break;
 					
 				case SORT_TYPE:
-					Object[] t = dir_content.toArray();
-					String dir = path_stack.peek();
+					Object[] t = mDirContent.toArray();
+					String dir = mPathStack.peek();
 					
 					Arrays.sort(t, type);
-					dir_content.clear();
+					mDirContent.clear();
 					
 					for (Object a : t){
 						if(new File(dir + "/" + (String)a).isDirectory())
-							dir_content.add(0, (String)a);
+							mDirContent.add(0, (String)a);
 						else
-							dir_content.add((String)a);
+							mDirContent.add((String)a);
 					}
 					break;
 			}
 				
 		} else {
-			dir_content.add("Emtpy");
+			mDirContent.add("Emtpy");
 		}
 		
-		return dir_content;
+		return mDirContent;
 	}
 	
 	/*
@@ -608,7 +608,7 @@ public class FileManager {
 			zout.closeEntry();
 			instream.close();
 			
-		}else {
+		} else {
 			String[] list = file.list();
 			int len = list.length;
 			
@@ -618,6 +618,10 @@ public class FileManager {
 	}
 	
 	/*
+	 * This function will be rewritten as there is a problem getting
+	 * the directory size in certain folders from root. ex /sys, /proc.
+	 * The app will continue until a stack overflow. get size is fine uder the 
+	 * sdcard folder.
 	 * 
 	 * @param path
 	 */
@@ -629,11 +633,12 @@ public class FileManager {
 			len = list.length;
 			
 			for (int i = 0; i < len; i++) {
-				if(list[i].isFile())
-					dir_size += list[i].length();
-				
-				else if(list[i].isDirectory() && list[i].canRead())
+				if(list[i].isFile() && list[i].canRead()) {
+					mDirSize += list[i].length();
+					
+				} else if(list[i].isDirectory() && list[i].canRead()) { 
 					get_dir_size(list[i]);
+				}
 			}
 		}
 	}
@@ -661,7 +666,8 @@ public class FileManager {
 				File check = new File(dir + "/" + list[i]);
 				String name = check.getName();
 					
-				if(check.isFile() && name.toLowerCase().contains(fileName.toLowerCase())) {
+				if(check.isFile() && name.toLowerCase().
+										contains(fileName.toLowerCase())) {
 					n.add(check.getPath());
 				}
 				else if(check.isDirectory()) {
