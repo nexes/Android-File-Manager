@@ -22,6 +22,8 @@ import java.io.File;
 import java.util.Date;
 import android.os.Bundle;
 import android.os.AsyncTask;
+import android.os.StatFs;
+import android.os.Environment;
 import android.content.Intent;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -29,6 +31,7 @@ import android.view.View.OnClickListener;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Button;
+import android.util.Log;
 
 public class DirectoryInfo extends Activity {
 	private static final int KB = 1024;
@@ -74,12 +77,9 @@ public class DirectoryInfo extends Activity {
 		
 	}
 	
-	/*
-	 * Not finished,
-	 * get free and used space of sdcard
-	 */
 
-	private class BackgroundWork extends AsyncTask<String, Void, Double> {
+
+	private class BackgroundWork extends AsyncTask<String, Void, Long> {
 		private ProgressDialog dialog;
 		private String mDisplaySize;
 		private int mFileCount = 0;
@@ -89,16 +89,13 @@ public class DirectoryInfo extends Activity {
 			dialog = ProgressDialog.show(DirectoryInfo.this, "", "Calculating information...", true, true);
 		}
 		
-		protected Double doInBackground(String... vals) {
+		protected Long doInBackground(String... vals) {
 			FileManager flmg = new FileManager();
 			File dir = new File(vals[0]);
-			File[] list;
-			double size;
+			long size = 0;
 			int len = 0;
-			
-			size = flmg.getDirSize(vals[0]);
-				
-			list = dir.listFiles();
+
+			File[] list = dir.listFiles();
 			if(list != null)
 				len = list.length;
 			
@@ -109,19 +106,40 @@ public class DirectoryInfo extends Activity {
 					mDirCount++;
 			}
 			
-			if (size > GB)
-				mDisplaySize = String.format("%.2f Gb ", size / GB);
-			else if (size < GB && size > MG)
-				mDisplaySize = String.format("%.2f Mb ", size / MG);
-			else if (size < MG && size > KB)
-				mDisplaySize = String.format("%.2f Kb ", size/ KB);
-			else
-				mDisplaySize = String.format("%.2f bytes ", size);
+			if(vals[0].equals("/")) {				
+				StatFs fss = new StatFs(Environment.getRootDirectory().getPath());
+				size = fss.getAvailableBlocks() * (fss.getBlockSize() / KB);
+				
+				mDisplaySize = (size > GB) ? 
+						String.format("%.2f Gb ", (double)size / MG) :
+						String.format("%.2f Mb ", (double)size / KB);
+				
+			}else if(vals[0].equals("/sdcard")) {
+				StatFs fs = new StatFs(Environment.getExternalStorageDirectory()
+										.getPath());
+				size = fs.getBlockCount() * (fs.getBlockSize() / KB);
+				
+				mDisplaySize = (size > GB) ? 
+					String.format("%.2f Gb ", (double)size / GB) :
+					String.format("%.2f Gb ", (double)size / MG);
+				
+			} else {
+				size = flmg.getDirSize(vals[0]);
+						
+				if (size > GB)
+					mDisplaySize = String.format("%.2f Gb ", (double)size / GB);
+				else if (size < GB && size > MG)
+					mDisplaySize = String.format("%.2f Mb ", (double)size / MG);
+				else if (size < MG && size > KB)
+					mDisplaySize = String.format("%.2f Kb ", (double)size/ KB);
+				else
+					mDisplaySize = String.format("%.2f bytes ", (double)size);
+			}
 			
 			return size;
 		}
 		
-		protected void onPostExecute(Double result) {
+		protected void onPostExecute(Long result) {
 			File dir = new File(mPathName);
 			
 			mNameLabel.setText(dir.getName());
