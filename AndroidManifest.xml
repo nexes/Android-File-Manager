@@ -68,7 +68,8 @@
 	    		  android:screenOrientation="portrait" /> 
 	        
 </application>
-    <uses-sdk android:minSdkVersion="3" />
+    <uses-sdk android:minSdkVersion="3" 
+    		  android:targetSdkVersion="11"/>
     
 <!-- uncomment this in order to allow wifi information displayed
 <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
