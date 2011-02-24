@@ -438,7 +438,7 @@ public class EventHandler implements OnClickListener {
 	 * This private method is used to display options the user can select when
 	 * the tool box button is pressed. The WIFI option is commented out as it doesn't
 	 * seem to fit with the overall idea of the application. However to display it, just 
-	 * uncomment the below code and the code in the AndroidManifest.xml file. 
+	 * uncomment the below code and the code in the AndroidManifest.xml file.
 	 */
 	private void display_dialog(int type) {
 		AlertDialog.Builder builder;
@@ -618,7 +618,7 @@ public class EventHandler implements OnClickListener {
     		holder.topView.setTextColor(mColor);
     		holder.bottomView.setTextColor(mColor);
     		
-    		if(file.isFile()) {
+    		if(file != null && file.isFile()) {
     			String ext = file.toString();
     			String sub_ext = ext.substring(ext.lastIndexOf(".") + 1);
     			
@@ -645,8 +645,8 @@ public class EventHandler implements OnClickListener {
 	    				Bitmap thumb = thumbnail.hasBitmapCached(position);
 	    				
 	    				if(thumb == null) {
-	    					final Handler mHandler = new Handler();
-	   						thumbnail.setBitmapToImageView(file.getPath(), 
+	    						final Handler mHandler = new Handler();
+	   							thumbnail.setBitmapToImageView(file.getPath(), 
 	   													   mHandler, 
 	   													   holder.icon);
 	   						
@@ -705,7 +705,7 @@ public class EventHandler implements OnClickListener {
     				holder.icon.setImageResource(R.drawable.text);
     			}
     			
-    		} else if (file.isDirectory()) {
+    		} else if (file != null && file.isDirectory()) {
     			holder.icon.setImageResource(R.drawable.folder);
     		}
     		    		

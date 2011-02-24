@@ -294,7 +294,8 @@ public final class Main extends ListActivity {
 	    			item_ext.equalsIgnoreCase(".3gp") ||
 	    			item_ext.equalsIgnoreCase(".wmv") || 
 	    			item_ext.equalsIgnoreCase(".mp4") || 
-	    			item_ext.equalsIgnoreCase(".ogg")) {
+	    			item_ext.equalsIgnoreCase(".ogg") ||
+	    			item_ext.equalsIgnoreCase(".wav")) {
 	    		
 	    		if (file.exists()) {
 	    			if(mReturnIntent) {

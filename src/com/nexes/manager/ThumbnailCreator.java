@@ -68,7 +68,7 @@ public class ThumbnailCreator {
 					final SoftReference<Bitmap> thumb;
 					BitmapFactory.Options options = new BitmapFactory.Options();
 					options.inSampleSize = 64;
-		
+					
 					thumb = (file.length() > 100000) ?
 							 new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageSrc, options)) : 
 							 new SoftReference<Bitmap>(Bitmap.createScaledBitmap(
@@ -76,6 +76,7 @@ public class ThumbnailCreator {
 									 						  mWidth,
 									 						  mHeight,
 									 						  false));
+										
 					mCacheBitmap.add(thumb.get());
 					
 					handle.post(new Runnable() {
