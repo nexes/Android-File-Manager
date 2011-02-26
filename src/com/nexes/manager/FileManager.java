@@ -411,7 +411,7 @@ public class FileManager {
 				
 				for(int i = 0; i < file_list.length; i++) {
 					File temp_f = new File(target.getAbsolutePath() + "/" + file_list[i]);
-					
+
 					if(temp_f.isDirectory())
 						deleteTarget(temp_f.getAbsolutePath());
 					else if(temp_f.isFile())

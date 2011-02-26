@@ -41,7 +41,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-//import android.util.Log;
 
 /**
  * This class sits between the Main activity and the FileManager class. 
@@ -562,7 +561,7 @@ public class EventHandler implements OnClickListener {
     	
     	public String getFilePermissions(File file) {
     		String per = "-";
-    		
+    	    		
     		if(file.isDirectory())
     			per += "d";
     		if(file.canRead())
