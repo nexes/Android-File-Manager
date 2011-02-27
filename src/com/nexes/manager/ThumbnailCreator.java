@@ -20,7 +20,6 @@ package com.nexes.manager;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.widget.ImageView;
 import android.os.Handler;
 
@@ -32,6 +31,7 @@ public class ThumbnailCreator {
 	private int mWidth;
 	private int mHeight;
 	private ArrayList<Bitmap> mCacheBitmap;
+	private SoftReference<Bitmap> mThumb;
 
 	public ThumbnailCreator(int width, int height) {
 		mWidth = width;
@@ -55,7 +55,7 @@ public class ThumbnailCreator {
 	public void clearBitmapCache() {
 		mCacheBitmap.clear();
 	}
-
+	
 	public void setBitmapToImageView(final String imageSrc, 
 									 final Handler handle, 
 									 final ImageView icon) {
@@ -65,23 +65,21 @@ public class ThumbnailCreator {
 		Thread thread = new Thread() {
 			public void run() {
 				synchronized (this) {
-					final SoftReference<Bitmap> thumb;
 					BitmapFactory.Options options = new BitmapFactory.Options();
-					options.inSampleSize = 64;
+					options.inSampleSize = 32;
 					
-					thumb = (file.length() > 100000) ?
+					mThumb = (file.length() > 100000) ?
 							 new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageSrc, options)) : 
 							 new SoftReference<Bitmap>(Bitmap.createScaledBitmap(
 									 						  BitmapFactory.decodeFile(imageSrc),
 									 						  mWidth,
 									 						  mHeight,
 									 						  false));
-										
-					mCacheBitmap.add(thumb.get());
+					mCacheBitmap.add(mThumb.get());
 					
 					handle.post(new Runnable() {
 						public void run() {
-							icon.setImageBitmap(thumb.get());
+							icon.setImageBitmap(mThumb.get());
 						}
 					});
 				}

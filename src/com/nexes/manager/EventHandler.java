@@ -640,7 +640,7 @@ public class EventHandler implements OnClickListener {
     					   sub_ext.equalsIgnoreCase("gif") ||
     					   sub_ext.equalsIgnoreCase("tiff")) {
     				
-    				if(thumbnail_flag) {
+    				if(thumbnail_flag && file.length() != 0) {
 	    				Bitmap thumb = thumbnail.hasBitmapCached(position);
 	    				
 	    				if(thumb == null) {
@@ -656,7 +656,7 @@ public class EventHandler implements OnClickListener {
     				} else {
     					holder.icon.setImageResource(R.drawable.image);
     				}
-    							
+    				
     			} else if (sub_ext.equalsIgnoreCase("zip")  || 
     					   sub_ext.equalsIgnoreCase("gzip") ||
     					   sub_ext.equalsIgnoreCase("gz")) {
