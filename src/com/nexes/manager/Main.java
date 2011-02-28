@@ -28,9 +28,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.StatFs;
 import android.os.Environment;
+import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -116,9 +116,12 @@ public final class Main extends ListActivity {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        
+        if(android.os.Build.VERSION.SDK_INT != 11)
+        	requestWindowFeature(Window.FEATURE_NO_TITLE);
+                	
         setContentView(R.layout.main);
-                
+        
         /*read settings*/
         mSettings = getSharedPreferences(PREFS_NAME, 0);
         boolean hide = mSettings.getBoolean(PREFS_HIDDEN, false);
@@ -710,8 +713,9 @@ public final class Main extends ListActivity {
     				public void onClick (View v) {
     					if (input.getText().length() > 1) {
     						if (mFileMag.createDir(mFileMag.getCurrentDir() + "/", input.getText().toString()) == 0)
-    							Toast.makeText(Main.this, "Folder " + input.getText().toString() + " created", Toast.LENGTH_LONG)
-    								.show();
+    							Toast.makeText(Main.this, 
+    										   "Folder " + input.getText().toString() + " created", 
+    										   Toast.LENGTH_LONG).show();
     						else
     							Toast.makeText(Main.this, "New folder was not created", Toast.LENGTH_SHORT).show();
     					}

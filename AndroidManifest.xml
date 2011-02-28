@@ -67,7 +67,13 @@
 	    		  android:theme="@android:style/Theme.Dialog" /> 
 	        
 </application>
-    <uses-sdk android:minSdkVersion="4"/>
+	
+	<supports-screens android:smallScreens="true"
+					  android:normalScreens="true"
+					  android:largeScreens="true" />
+	
+    <uses-sdk android:minSdkVersion="4"
+    		  android:targetSdkVersion="11"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     
 <!-- uncomment this in order to allow wifi information displayed
