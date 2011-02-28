@@ -23,7 +23,6 @@
 	android:layout_height="fill_parent"
 	android:minWidth="260dp"
 	android:minHeight="170dp"
-	android:background="@color/white"
 	android:padding="5dp"
 	>
 	<TextView
@@ -31,7 +30,7 @@
 		android:layout_height="wrap_content"
 		android:gravity="right"
 		android:text="path will go here "
-		android:textColor="@color/black"
+		android:textColor="@color/white"
 		android:id="@+id/input_label"/>
 	<LinearLayout
 		android:orientation="horizontal"
