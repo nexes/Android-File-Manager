@@ -36,9 +36,9 @@
 		android:longClickable="true"
 		android:background="@color/black"/>
 	<Button
-		android:id="@+id/backup_button"
+		android:id="@+id/backup_button_all"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_gravity="center"
-		android:text="Backup installed apps"/>	
+		android:text="Backup all"/>
 </LinearLayout>

@@ -46,7 +46,6 @@ import android.widget.Button;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Toast;
-//import android.util.Log;
 
 /**
  * This class is used to display an activity to the user so they can
@@ -62,16 +61,18 @@ import android.widget.Toast;
  * 
  * @author Joe Berria <nexesdevelopment@gmail.com>
  */
-public class ApplicationBackup extends ListActivity {
+
+
+public class ApplicationBackup extends ListActivity implements OnClickListener {
 	private static final String BACKUP_LOC = "/sdcard/open manager/AppBackup/";
 	private static final int SET_PROGRESS = 0x00;
 	private static final int FINISH_PROGRESS = 0x01;
 	private static final int FLAG_UPDATED_SYS_APP = 0x80;
 	
-	private ArrayList<ApplicationInfo> appList;
-	private TextView appLabel;
-	private PackageManager pk;
-	private ProgressDialog dialog;
+	private ArrayList<ApplicationInfo> mAppList;
+	private TextView mAppLabel;
+	private PackageManager mPackMag;
+	private ProgressDialog mDialog;
 	
 	/*
 	 * Our handler object that will update the GUI from 
@@ -82,12 +83,13 @@ public class ApplicationBackup extends ListActivity {
 			
 			switch(msg.what) {
 				case SET_PROGRESS:
-					dialog.setMessage((String)msg.obj);
+					mDialog.setMessage((String)msg.obj);
 					break;
 				case FINISH_PROGRESS:
-					dialog.cancel();
-					Toast.makeText(ApplicationBackup.this, "Applications have been backed up", 
-									Toast.LENGTH_SHORT).show();
+					mDialog.cancel();
+					Toast.makeText(ApplicationBackup.this, 
+								   "Applications have been backed up", 
+								   Toast.LENGTH_SHORT).show();
 					break;
 			}
 		}
@@ -99,38 +101,42 @@ public class ApplicationBackup extends ListActivity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.backup_layout);
 				
-		appLabel = (TextView)findViewById(R.id.backup_label);
-		Button button = (Button)findViewById(R.id.backup_button);
-		button.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				dialog = ProgressDialog.show(ApplicationBackup.this, "Backing up applications",
-						"", true, false);
-				
-				Thread thread = new Thread(new BackgroundWork());
-				thread.start();
-			}
-		});
+		mAppLabel = (TextView)findViewById(R.id.backup_label);
+		Button button = (Button)findViewById(R.id.backup_button_all);
 		
-		appList = new ArrayList<ApplicationInfo>();
-		pk = getPackageManager();
+		button.setOnClickListener(this);
+		
+		mAppList = new ArrayList<ApplicationInfo>();
+		mPackMag = getPackageManager();
 		
 		get_downloaded_apps();
 		setListAdapter(new TableView());
 	}
 	
+	
+	@Override
+	public void onClick(View view) {
+		mDialog = ProgressDialog.show(ApplicationBackup.this, 
+				  					  "Backing up applications",
+				  					  "", true, false);
+		
+		Thread all = new Thread(new BackgroundWork(mAppList));
+		all.start();
+	}
+	
 	private void get_downloaded_apps() {
-		List<ApplicationInfo> all_apps = pk.getInstalledApplications(
+		List<ApplicationInfo> all_apps = mPackMag.getInstalledApplications(
 											PackageManager.GET_UNINSTALLED_PACKAGES);
 		
 		for(ApplicationInfo appInfo : all_apps) {
 			if((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0 && 
-					   (appInfo.flags & FLAG_UPDATED_SYS_APP) == 0 && appInfo.flags != 0)
+			   (appInfo.flags & FLAG_UPDATED_SYS_APP) == 0 && 
+			   appInfo.flags != 0)
 				
-				appList.add(appInfo);
+				mAppList.add(appInfo);
 		}
 		
-		appLabel.setText("You have " +appList.size() + " downloaded apps");
+		mAppLabel.setText("You have " +mAppList.size() + " downloaded apps");
 	}
 
 
@@ -140,49 +146,52 @@ public class ApplicationBackup extends ListActivity {
 	 * sent to our handler object.
 	 */
 	private class BackgroundWork implements Runnable {
-		File dir = new File(BACKUP_LOC);
-		BufferedInputStream buff_in;
-		BufferedOutputStream buff_out;
-		int buffer = 256;
-		byte[] data;
+		private static final int BUFFER = 256;
 		
-		public BackgroundWork() {
-			data =  new byte[buffer];
-			
+		private ArrayList<ApplicationInfo> mDataSource;
+		private File mDir = new File(BACKUP_LOC);
+		private byte[] mData;
+		
+		public BackgroundWork(ArrayList<ApplicationInfo> data)  {
+			mDataSource = data;
+			mData =  new byte[BUFFER];
+						
 			/*create dir if needed*/
 			File d = new File("/sdcard/open manager/");
 			if(!d.exists()) {
 				d.mkdir();
 				
 				//then create this directory
-				dir.mkdir();
+				mDir.mkdir();
 				
 			} else {
-				if(!dir.exists())
-					dir.mkdir();
+				if(!mDir.exists())
+					mDir.mkdir();
 			}
 		}
 
 		public void run() {
+			BufferedInputStream mBuffIn;
+			BufferedOutputStream mBuffOut;
 			Message msg;
-			int len = appList.size();
+			int len = mDataSource.size();
 			int read = 0;
 			
 			for(int i = 0; i < len; i++) {
-				ApplicationInfo info = appList.get(i);
+				ApplicationInfo info = mDataSource.get(i);
 				String source_dir = info.sourceDir;
 				String out_file = source_dir.substring(source_dir.lastIndexOf("/") + 1, source_dir.length());
 
 				try {
-					buff_in = new BufferedInputStream(new FileInputStream(source_dir));
-					buff_out = new BufferedOutputStream(new FileOutputStream(BACKUP_LOC + out_file));
+					mBuffIn = new BufferedInputStream(new FileInputStream(source_dir));
+					mBuffOut = new BufferedOutputStream(new FileOutputStream(BACKUP_LOC + out_file));
 					
-					while((read = buff_in.read(data, 0, buffer)) != -1)
-						buff_out.write(data, 0, read);
+					while((read = mBuffIn.read(mData, 0, BUFFER)) != -1)
+						mBuffOut.write(mData, 0, read);
 					
-					buff_out.flush();
-					buff_in.close();
-					buff_out.close();
+					mBuffOut.flush();
+					mBuffIn.close();
+					mBuffOut.close();
 					
 					msg = new Message();
 					msg.what = SET_PROGRESS;
@@ -204,18 +213,19 @@ public class ApplicationBackup extends ListActivity {
 		TextView top_view;
 		TextView bottom_view;
 		ImageView icon;
+		ImageView check_mark;
 	}
 	
 	private class TableView extends ArrayAdapter<ApplicationInfo> {
 		
 		private TableView() {
-			super(ApplicationBackup.this, R.layout.tablerow, appList);
+			super(ApplicationBackup.this, R.layout.tablerow, mAppList);
 		}
 		
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			AppViewHolder holder;
-			ApplicationInfo info = appList.get(position);
+			ApplicationInfo info = mAppList.get(position);
 			
 			if(convertView == null) {
 				LayoutInflater inflater = getLayoutInflater();
@@ -224,6 +234,7 @@ public class ApplicationBackup extends ListActivity {
 				holder = new AppViewHolder();
 				holder.top_view = (TextView)convertView.findViewById(R.id.top_view);
 				holder.bottom_view = (TextView)convertView.findViewById(R.id.bottom_view);
+				holder.check_mark = (ImageView)convertView.findViewById(R.id.multiselect_icon);
 				holder.icon = (ImageView)convertView.findViewById(R.id.row_image);
 				holder.icon.setMaxHeight(40);
 				convertView.setTag(holder);
@@ -237,7 +248,7 @@ public class ApplicationBackup extends ListActivity {
 			
 			//this should not throw the exception
 			try {
-				holder.icon.setImageDrawable(pk.getApplicationIcon(info.packageName));
+				holder.icon.setImageDrawable(mPackMag.getApplicationIcon(info.packageName));
 			} catch (NameNotFoundException e) {
 				holder.icon.setImageResource(R.drawable.appicon);
 			}

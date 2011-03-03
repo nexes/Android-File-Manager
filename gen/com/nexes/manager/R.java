@@ -64,7 +64,7 @@ public final class R {
     public static final class id {
         public static final int available_mem_label=0x7f06002a;
         public static final int back_button=0x7f060017;
-        public static final int backup_button=0x7f060004;
+        public static final int backup_button_all=0x7f060004;
         public static final int backup_label=0x7f060003;
         public static final int bottom_view=0x7f060034;
         public static final int detail_label=0x7f060024;
