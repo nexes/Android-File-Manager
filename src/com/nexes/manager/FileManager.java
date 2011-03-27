@@ -440,30 +440,19 @@ public class FileManager {
 	 * @param des
 	 * @return
 	 */
-	public static String integerToIPAddress(int des) {
-		String ip_address = "";
-		int[] binary = new int[32];
-		int[] value = {1,2,4,8,16,32,64,128};
-		int i = 0, num = 0, count = 0;
-
-	   	 while(des != 0) {
-		    binary[i++] = des % 2;
-		    des = des / 2;
-
-		    if(count > 7){
-				ip_address += num + ".";
-			    count = 0;
-				num = 0;
-		    }
-
-		    if(binary[i - 1] == 1)
-		    	num += value[count];
-		    count++;
-		}
-		ip_address += num;
+	public static String integerToIPAddress(int ip) {
+		String ascii_address = "";
+		int[] num = new int[4];
 		
-		return ip_address;
-	}
+		num[0] = (ip & 0xff000000) >> 24;
+		num[1] = (ip & 0x00ff0000) >> 16;
+		num[2] = (ip & 0x0000ff00) >> 8;
+		num[3] = ip & 0x000000ff;
+		 
+		ascii_address = num[0] + "." + num[1] + "." + num[2] + "." + num[3];
+		 
+		return ascii_address;
+	 }
 	
 	/**
 	 * 
