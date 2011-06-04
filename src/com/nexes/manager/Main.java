@@ -27,6 +27,7 @@ import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+//import android.graphics.Color;
 import android.net.Uri;
 import android.os.StatFs;
 import android.os.Environment;
@@ -261,14 +262,16 @@ public final class Main extends ListActivity {
 	    	
 	    	/*music file selected--add more audio formats*/
 	    	else if (item_ext.equalsIgnoreCase(".mp3") || 
-	    			 item_ext.equalsIgnoreCase(".m4a")) {
+	    			 item_ext.equalsIgnoreCase(".m4a")||
+	    			 item_ext.equalsIgnoreCase(".mp4")) {
 	    		
 	    		if(mReturnIntent) {
 	    			returnIntentResults(file);
 	    		} else {
-		    		Intent music_int = new Intent(this, AudioPlayblack.class);
-		        	music_int.putExtra("MUSIC PATH", mFileMag.getCurrentDir() +"/"+ item);
-		        	startActivity(music_int);
+	    			Intent i = new Intent();
+    				i.setAction(android.content.Intent.ACTION_VIEW);
+    				i.setDataAndType(Uri.fromFile(file), "audio/*");
+    				startActivity(i);
 	    		}
 	    	}
 	    	
@@ -305,7 +308,7 @@ public final class Main extends ListActivity {
 	    				returnIntentResults(file);
 	    				
 	    			} else {
-			    		Intent movieIntent = new Intent();
+	    				Intent movieIntent = new Intent();
 			    		movieIntent.setAction(android.content.Intent.ACTION_VIEW);
 			    		movieIntent.setDataAndType(Uri.fromFile(file), "video/*");
 			    		startActivity(movieIntent);
@@ -822,15 +825,21 @@ public final class Main extends ListActivity {
     		if(mHandler.isMultiSelected()) {
     			mTable.killMultiSelect(true);
     			Toast.makeText(Main.this, "Multi-select is now off", Toast.LENGTH_SHORT).show();
+    		
+    		} else {
+	    		mHandler.updateDirectory(mFileMag.getPreviousDir());
+	    		mPathLabel.setText(mFileMag.getCurrentDir());
     		}
-    		
-    		mHandler.updateDirectory(mFileMag.getPreviousDir());
-    		mPathLabel.setText(mFileMag.getCurrentDir());
-    		
     		return true;
     		
     	} else if(keycode == KeyEvent.KEYCODE_BACK && mUseBackKey && current.equals("/")) {
     		Toast.makeText(Main.this, "Press back again to quit.", Toast.LENGTH_SHORT).show();
+    		
+    		if(mHandler.isMultiSelected()) {
+    			mTable.killMultiSelect(true);
+    			Toast.makeText(Main.this, "Multi-select is now off", Toast.LENGTH_SHORT).show();
+    		}
+    		
     		mUseBackKey = false;
     		mPathLabel.setText(mFileMag.getCurrentDir());
     		
