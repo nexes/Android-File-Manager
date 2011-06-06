@@ -109,9 +109,9 @@
     		android:layout_width="fill_parent"
     		android:layout_height="fill_parent"
     		android:layout_weight="2"
+    		android:drawSelectorOnTop="true"
     		android:smoothScrollbar="true"
     		android:longClickable="true"
-    		android:drawSelectorOnTop="true"
     		android:background="@color/black"
     		android:id="@+id/android:list"/>
     		
