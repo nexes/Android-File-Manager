@@ -98,7 +98,7 @@ public class EventHandler implements OnClickListener {
 		mContext = context;
 		mFileMang = manager;
 		
-		mDataSource = new ArrayList<String>(mFileMang.getHomeDir());
+		mDataSource = new ArrayList<String>(mFileMang.setHomeDir("/sdcard"));
 	}
 
 	/**
@@ -284,7 +284,7 @@ public class EventHandler implements OnClickListener {
 					Toast.makeText(mContext, "Multi-select is now off", 
 								   Toast.LENGTH_SHORT).show();
 				}
-				updateDirectory(mFileMang.getHomeDir());
+				updateDirectory(mFileMang.setHomeDir("/sdcard"));
 				if(mPathLabel != null)
 					mPathLabel.setText(mFileMang.getCurrentDir());
 				break;
