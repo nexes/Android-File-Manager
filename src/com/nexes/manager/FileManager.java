@@ -1,6 +1,6 @@
 /*
-    Open Manager, an open source file manager for the Android system
-    Copyright (C) 2009, 2010, 2011  Joe Berria <nexesdevelopment@gmail.com>
+    Open Manager For Tablets, an open source file manager for the Android system
+    Copyright (C) 2011  Joe Berria <nexesdevelopment@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,11 +87,11 @@ public class FileManager {
 	 * This will return a string of the current home path.
 	 * @return	the home directory
 	 */
-	public ArrayList<String> getHomeDir() {
+	public ArrayList<String> setHomeDir(String name) {
 		//This will eventually be placed as a settings item
 		mPathStack.clear();
 		mPathStack.push("/");
-		mPathStack.push(mPathStack.peek() + "sdcard");
+		mPathStack.push(name);
 		
 		return populate_list();
 	}
@@ -209,48 +209,19 @@ public class FileManager {
 	
 	/**
 	 * 
+	 * @param zipName
 	 * @param toDir
 	 * @param fromDir
 	 */
 	public void extractZipFilesFromDir(String zipName, String toDir, String fromDir) {
-		byte[] data = new byte[BUFFER];
-		ZipEntry entry;
-		ZipInputStream zipstream;
+		if(!(toDir.charAt(toDir.length() - 1) == '/'))
+			toDir += "/";
+		if(!(fromDir.charAt(fromDir.length() - 1) == '/'))
+			fromDir += "/";
 		
-		/* create new directory for zip file */
-		String org_path = fromDir + "/" + zipName;
-		String dest_path = toDir + zipName.substring(0, zipName.length() - 4);
-		String zipDir = dest_path + "/";
-				
-		new File(zipDir).mkdir();
+		String org_path = fromDir + zipName;		
 		
-		try {
-			zipstream = new ZipInputStream(new FileInputStream(org_path));
-			
-			while((entry = zipstream.getNextEntry()) != null) {
-				if(entry.isDirectory()) {
-					String ndir = zipDir + entry.getName() + "/";
-					
-					new File(ndir).mkdir();
-					
-				} else {
-					int read = 0;
-					FileOutputStream out = new FileOutputStream(
-												zipDir + entry.getName());
-					while((read = zipstream.read(data, 0, BUFFER)) != -1)
-						out.write(data, 0, read);
-					
-					zipstream.closeEntry();
-					out.close();
-				}
-			}
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		extractZipFiles(org_path, toDir);
 	}
 	
 	/**
@@ -260,38 +231,52 @@ public class FileManager {
 	 */
 	public void extractZipFiles(String zip_file, String directory) {
 		byte[] data = new byte[BUFFER];
+		String name, path, zipDir;
 		ZipEntry entry;
 		ZipInputStream zipstream;
 		
-		/* create new directory for zip file */
-		String path = directory + zip_file;
-		String name = path.substring(path.lastIndexOf("/") + 1, 
-									 path.length() - 4);
-		String zipDir = path.substring(0, path.lastIndexOf("/") +1) + 
-									   name + "/";
+		if(!(directory.charAt(directory.length() - 1) == '/'))
+			directory += "/";
+		
+		if(zip_file.contains("/")) {
+			path = zip_file;
+			name = path.substring(path.lastIndexOf("/") + 1, 
+								  path.length() - 4);
+			zipDir = directory + name + "/";
+			
+		} else {
+			path = directory + zip_file;
+			name = path.substring(path.lastIndexOf("/") + 1, 
+		 			  			  path.length() - 4);
+			zipDir = directory + name + "/";
+		}
+
 		new File(zipDir).mkdir();
 		
 		try {
 			zipstream = new ZipInputStream(new FileInputStream(path));
 			
 			while((entry = zipstream.getNextEntry()) != null) {
-				if(entry.isDirectory()) {
-					String ndir = zipDir + entry.getName() + "/";
-
-					new File(ndir).mkdir();
-					
-				} else {
-					int read = 0;
-					FileOutputStream out = new FileOutputStream(
-											zipDir + entry.getName());
-					while((read = zipstream.read(data, 0, BUFFER)) != -1)
-						out.write(data, 0, read);
-					
-					zipstream.closeEntry();
-					out.close();
+				String buildDir = zipDir;
+				String[] dirs = entry.getName().split("/");
+				
+				if(dirs != null && dirs.length > 0) {
+					for(int i = 0; i < dirs.length - 1; i++) {
+						buildDir += dirs[i] + "/";
+						new File(buildDir).mkdir();
+					}
 				}
+				
+				int read = 0;
+				FileOutputStream out = new FileOutputStream(
+										zipDir + entry.getName());
+				while((read = zipstream.read(data, 0, BUFFER)) != -1)
+					out.write(data, 0, read);
+				
+				zipstream.closeEntry();
+				out.close();
 			}
-			
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			
@@ -590,17 +575,18 @@ public class FileManager {
 			zout.putNextEntry(entry);
 			BufferedInputStream instream = new BufferedInputStream(
 										   new FileInputStream(file));
-			
+			Log.e("File Manager", "zip_folder file name = " + entry.getName());
 			while((read = instream.read(data, 0, BUFFER)) != -1)
 				zout.write(data, 0, read);
 			
 			zout.closeEntry();
 			instream.close();
-			
-		} else {
+		
+		} else if (file.isDirectory()) {
+			Log.e("File Manager", "zip_folder dir name = " + file.getPath());
 			String[] list = file.list();
 			int len = list.length;
-			
+										
 			for(int i = 0; i < len; i++)
 				zip_folder(new File(file.getPath() +"/"+ list[i]), zout);
 		}
