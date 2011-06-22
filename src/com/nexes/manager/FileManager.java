@@ -55,6 +55,7 @@ public class FileManager {
 	private static final int SORT_NONE = 	0;
 	private static final int SORT_ALPHA = 	1;
 	private static final int SORT_TYPE = 	2;
+	private static final int SORT_SIZE = 	3;
 	
 	private boolean mShowHiddenFiles = false;
 	private int mSortType = SORT_ALPHA;
@@ -471,21 +472,38 @@ public class FileManager {
 		}
 	};
 	
-	private static final Comparator type = new Comparator<String>() {
+	private final Comparator size = new Comparator<String>() {
+		@Override
+		public int compare(String arg0, String arg1) {
+			String dir = mPathStack.peek();
+			Long first = new File(dir + "/" + arg0).length();
+			Long second = new File(dir + "/" + arg1).length();
+			
+			Log.e("FILE MANAGER", "first: " + first + "\nsecond: " + second);
+			return first.compareTo(second);
+		}
+	};
+	
+	private final Comparator type = new Comparator<String>() {
 		@Override
 		public int compare(String arg0, String arg1) {
 			String ext = null;
 			String ext2 = null;
+			int ret;
 			
 			try {
-				ext = arg0.substring(arg0.lastIndexOf(".") + 1, arg0.length());
-				ext2 = arg1.substring(arg1.lastIndexOf(".") + 1, arg1.length());
+				ext = arg0.substring(arg0.lastIndexOf(".") + 1, arg0.length()).toLowerCase();
+				ext2 = arg1.substring(arg1.lastIndexOf(".") + 1, arg1.length()).toLowerCase();
 				
 			} catch (IndexOutOfBoundsException e) {
 				return 0;
 			}
+			ret = ext.compareTo(ext2);
 			
-			return ext.compareTo(ext2);
+			if (ret == 0)
+					return arg0.toLowerCase().compareTo(arg1.toLowerCase());
+			
+			return ret;
 		}
 	};
 	
@@ -537,16 +555,33 @@ public class FileManager {
 					}
 					break;
 					
-				case SORT_TYPE:
-					Object[] t = mDirContent.toArray();
+				case SORT_SIZE:
+					int index = 0;
+					Object[] size_ar = mDirContent.toArray();
 					String dir = mPathStack.peek();
 					
-					Arrays.sort(t, type);
+					Arrays.sort(size_ar, size);
+					
+					mDirContent.clear();
+					for (Object a : size_ar) {
+						if(new File(dir + "/" + (String)a).isDirectory())
+							mDirContent.add(index++, (String)a);
+						else
+							mDirContent.add((String)a);
+					}
+					break;
+					
+				case SORT_TYPE:
+					int dirindex = 0;
+					Object[] type_ar = mDirContent.toArray();
+					String current = mPathStack.peek();
+					
+					Arrays.sort(type_ar, type);
 					mDirContent.clear();
 					
-					for (Object a : t){
-						if(new File(dir + "/" + (String)a).isDirectory())
-							mDirContent.add(0, (String)a);
+					for (Object a : type_ar) {
+						if(new File(current + "/" + (String)a).isDirectory())
+							mDirContent.add(dirindex++, (String)a);
 						else
 							mDirContent.add((String)a);
 					}
