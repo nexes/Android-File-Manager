@@ -95,7 +95,6 @@ public class EventHandler implements OnClickListener {
 	 * @param manager	The FileManager object that was instantiated from Main
 	 */
 	public EventHandler(Context context, final FileManager manager) {
-//		this(context, manager, "/sdcard");
 		mContext = context;
 		mFileMang = manager;
 		
@@ -721,7 +720,10 @@ public class EventHandler implements OnClickListener {
     			}
     			
     		} else if (file != null && file.isDirectory()) {
-    			holder.icon.setImageResource(R.drawable.folder);
+    			if (file.list().length > 0)
+    				holder.icon.setImageResource(R.drawable.folder_full);
+    			else
+    				holder.icon.setImageResource(R.drawable.folder);
     		}
     		    		
     		String permission = getFilePermissions(file);
