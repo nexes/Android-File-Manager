@@ -20,72 +20,74 @@ package com.nexes.manager;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.widget.ImageView;
 import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 
 import java.lang.ref.SoftReference;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.io.File;
 
-public class ThumbnailCreator {
+public class ThumbnailCreator {	
 	private int mWidth;
 	private int mHeight;
-	private ArrayList<Bitmap> mCacheBitmap;
 	private SoftReference<Bitmap> mThumb;
+	private static HashMap<String, Bitmap> mCacheMap = null;
 
 	public ThumbnailCreator(int width, int height) {
-		mWidth = width;
 		mHeight = height;
-		mCacheBitmap = new ArrayList<Bitmap>();
-	}
-	
-	public Bitmap hasBitmapCached(int index) {
-		if(mCacheBitmap.isEmpty())
-			return null;
+		mWidth = width;
 		
-		try {
-			return mCacheBitmap.get(index);
-			
-		} catch (IndexOutOfBoundsException e) {
-			e.printStackTrace();
-			return null;
-		}		
+		if(mCacheMap == null)
+			mCacheMap = new HashMap<String, Bitmap>();
 	}
 	
-	public void clearBitmapCache() {
-		mCacheBitmap.clear();
+	public Bitmap isBitmapCached(String name) {
+		return mCacheMap.get(name);
 	}
-	
-	public void setBitmapToImageView(final String imageSrc, 
-									 final Handler handle, 
-									 final ImageView icon) {
 
-		final File file = new File(imageSrc);
-	
+	/*
+	 * Absolutely maddening!!!
+	 */
+	public void createNewThumbnail(final String imageName, final Handler handler) {
+		
 		Thread thread = new Thread() {
 			public void run() {
-				synchronized (this) {
-					BitmapFactory.Options options = new BitmapFactory.Options();
-					options.inSampleSize = 32;
+				File file = new File(imageName);
+				
+				BitmapFactory.Options options = new BitmapFactory.Options();
+				options.outWidth = mWidth;
+				options.outHeight = mHeight;
+				
+				if (file.length() > 200000 && file.length() < 1500000) {
+					options.inSampleSize = 16;
+					mThumb = new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageName, options));
 					
-					mThumb = (file.length() > 100000) ?
-							 new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageSrc, options)) : 
-							 new SoftReference<Bitmap>(Bitmap.createScaledBitmap(
-									 						  BitmapFactory.decodeFile(imageSrc),
-									 						  mWidth,
-									 						  mHeight,
-									 						  false));
-					mCacheBitmap.add(mThumb.get());
-					
-					handle.post(new Runnable() {
-						public void run() {
-							icon.setImageBitmap(mThumb.get());
-						}
-					});
+				} else if (file.length() > 1500000) {
+					options.inSampleSize = 64;
+					options.outWidth = 32;
+					options.outHeight = 32;
+					mThumb = new SoftReference<Bitmap>(BitmapFactory.decodeFile(imageName, options));
+				
+				} else if (file.length() < 200000) {
+					mThumb = new SoftReference<Bitmap>(Bitmap.createScaledBitmap(
+							 						   BitmapFactory.decodeFile(imageName),
+							 						   mWidth,
+							 						   mHeight,
+							 						   false));
 				}
+
+				mCacheMap.put(imageName, mThumb.get());
+				handler.post(new Runnable() {
+					@Override
+					public void run() {
+						Message msg = handler.obtainMessage();
+						msg.obj = (Bitmap)mThumb.get();
+						msg.sendToTarget();
+					}
+				});
 			}
 		};
-		
 		thread.start();
 	}
 }
