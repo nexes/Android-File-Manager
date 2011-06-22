@@ -95,10 +95,26 @@ public class EventHandler implements OnClickListener {
 	 * @param manager	The FileManager object that was instantiated from Main
 	 */
 	public EventHandler(Context context, final FileManager manager) {
+//		this(context, manager, "/sdcard");
 		mContext = context;
 		mFileMang = manager;
 		
 		mDataSource = new ArrayList<String>(mFileMang.setHomeDir("/sdcard"));
+	}
+	
+	/**
+	 * This constructor is called if the user has changed the screen orientation
+	 * and does not want the directory to be reset to home. 
+	 * 
+	 * @param context	The context of the main activity e.g  Main
+	 * @param manager	The FileManager object that was instantiated from Main
+	 * @param location	The first directory to display to the user
+	 */
+	public EventHandler(Context context, final FileManager manager, String location) {
+		mContext = context;
+		mFileMang = manager;
+		
+		mDataSource = new ArrayList<String>(mFileMang.getNextDir(location, true));
 	}
 
 	/**

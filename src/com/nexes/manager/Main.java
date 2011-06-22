@@ -116,10 +116,7 @@ public final class Main extends ListActivity {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        if(android.os.Build.VERSION.SDK_INT != 11)
-        	requestWindowFeature(Window.FEATURE_NO_TITLE);
-                	
+        getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
         
         /*read settings*/
@@ -128,13 +125,17 @@ public final class Main extends ListActivity {
         boolean thumb = mSettings.getBoolean(PREFS_THUMBNAIL, true);
         int space = mSettings.getInt(PREFS_STORAGE, View.VISIBLE);
         int color = mSettings.getInt(PREFS_COLOR, -1);
-        int sort = mSettings.getInt(PREFS_SORT, 0);
+        int sort = mSettings.getInt(PREFS_SORT, 3);
         
         mFileMag = new FileManager();
         mFileMag.setShowHiddenFiles(hide);
         mFileMag.setSortType(sort);
         
-        mHandler = new EventHandler(Main.this, mFileMag);
+        if (savedInstanceState != null)
+        	mHandler = new EventHandler(Main.this, mFileMag, savedInstanceState.getString("location"));
+        else
+        	mHandler = new EventHandler(Main.this, mFileMag);
+        
         mHandler.setTextColor(color);
         mHandler.setShowThumbnails(thumb);
         mTable = mHandler.new TableRow();
@@ -185,6 +186,13 @@ public final class Main extends ListActivity {
         }
     }
 
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		
+		outState.putString("location", mFileMag.getCurrentDir());
+	}
+	
 	/*(non Java-Doc)
 	 * Returns the file that was selected to the intent that
 	 * called this activity. usually from the caller is another application.
