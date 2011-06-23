@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
@@ -99,7 +100,8 @@ public class EventHandler implements OnClickListener {
 		mContext = context;
 		mFileMang = manager;
 		
-		mDataSource = new ArrayList<String>(mFileMang.setHomeDir("/sdcard"));
+		mDataSource = new ArrayList<String>(mFileMang.setHomeDir
+						(Environment.getExternalStorageDirectory().getPath()));
 	}
 	
 	/**
@@ -719,7 +721,7 @@ public class EventHandler implements OnClickListener {
     			}
     			
     		} else if (file != null && file.isDirectory()) {
-    			if (file.list().length > 0)
+    			if (file.canRead() && file.list().length > 0)
     				mViewHolder.icon.setImageResource(R.drawable.folder_full);
     			else
     				mViewHolder.icon.setImageResource(R.drawable.folder);
