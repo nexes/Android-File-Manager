@@ -10,4 +10,5 @@
 	<color name="brightBlue">#0000FF</color>
 	<color name="darkBlue">#880000FF</color>
 	<color name="transparent">#000000FF</color>
+	<color name="transGray">#cc444444</color>
 </resources>

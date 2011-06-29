@@ -479,7 +479,6 @@ public class FileManager {
 			Long first = new File(dir + "/" + arg0).length();
 			Long second = new File(dir + "/" + arg1).length();
 			
-			Log.e("FILE MANAGER", "first: " + first + "\nsecond: " + second);
 			return first.compareTo(second);
 		}
 	};
@@ -610,7 +609,7 @@ public class FileManager {
 			zout.putNextEntry(entry);
 			BufferedInputStream instream = new BufferedInputStream(
 										   new FileInputStream(file));
-			Log.e("File Manager", "zip_folder file name = " + entry.getName());
+
 			while((read = instream.read(data, 0, BUFFER)) != -1)
 				zout.write(data, 0, read);
 			
@@ -618,7 +617,6 @@ public class FileManager {
 			instream.close();
 		
 		} else if (file.isDirectory()) {
-			Log.e("File Manager", "zip_folder dir name = " + file.getPath());
 			String[] list = file.list();
 			int len = list.length;
 										

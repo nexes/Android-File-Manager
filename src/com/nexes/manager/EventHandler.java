@@ -77,6 +77,7 @@ public class EventHandler implements OnClickListener {
 	
 	private final Context mContext;
 	private final FileManager mFileMang;
+	private ThumbnailCreator mThumbnail;
 	private TableRow mDelegate;
 	private boolean multi_select_flag = false;
 	private boolean delete_after_copy = false;
@@ -272,6 +273,11 @@ public class EventHandler implements OnClickListener {
 	 */
 	public void zipFile(String zipPath) {
 		new BackgroundWork(ZIP_TYPE).execute(zipPath);
+	}
+	
+	public void stopThumbnailThread() {
+		if (mThumbnail != null)
+			mThumbnail = null;
 	}
 
 	/**
@@ -523,12 +529,9 @@ public class EventHandler implements OnClickListener {
     	private String dir_name = "/sdcard";
     	private ArrayList<Integer> positions;
     	private LinearLayout hidden_layout;
-    	private ThumbnailCreator thumbnail;
     	
     	public TableRow() {
-    		super(mContext, R.layout.tablerow, mDataSource);
-    		
-    		thumbnail = new ThumbnailCreator(32, 32);
+    		super(mContext, R.layout.tablerow, mDataSource);    		
     	}
     	
     	public void addMultiPosition(int index, String path) {
@@ -626,6 +629,9 @@ public class EventHandler implements OnClickListener {
     		mViewHolder.topView.setTextColor(mColor);
     		mViewHolder.bottomView.setTextColor(mColor);
     		
+    		if(mThumbnail == null)
+    			mThumbnail = new ThumbnailCreator(52, 52);
+    		
     		if(file != null && file.isFile()) {
     			String ext = file.toString();
     			String sub_ext = ext.substring(ext.lastIndexOf(".") + 1);
@@ -650,24 +656,25 @@ public class EventHandler implements OnClickListener {
     					   sub_ext.equalsIgnoreCase("tiff")) {
     				
     				if(thumbnail_flag && file.length() != 0) {
-	    				Bitmap thumb = thumbnail.isBitmapCached(file.getPath());
-	    				
-	    				if(thumb == null) {
-	    					Handler mHandler = new Handler(new Handler.Callback() {
-								
-								@Override
-								public boolean handleMessage(Message msg) {
-									mViewHolder.icon.setImageBitmap((Bitmap)msg.obj);
-									notifyDataSetChanged();
-									
-									return true;
-								}
-							});
-	    					thumbnail.createNewThumbnail(file.getPath(), mHandler);
-	   						
-	    				} else {
-	    					mViewHolder.icon.setImageBitmap(thumb);
-	    				}
+    					Bitmap thumb = mThumbnail.isBitmapCached(file.getPath());
+
+    					if (thumb == null) {
+    						final Handler handle = new Handler(new Handler.Callback() {
+    							public boolean handleMessage(Message msg) {
+    								notifyDataSetChanged();
+    								
+    								return true;
+    							}
+    						});
+    										
+    						mThumbnail.createNewThumbnail(mDataSource, mFileMang.getCurrentDir(), handle);
+    						
+    						if (!mThumbnail.isAlive()) 
+    							mThumbnail.start();
+    						
+    					} else {
+    						mViewHolder.icon.setImageBitmap(thumb);
+    					}
 	    				
     				} else {
     					mViewHolder.icon.setImageResource(R.drawable.image);

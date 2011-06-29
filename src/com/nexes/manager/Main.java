@@ -47,7 +47,7 @@ import android.widget.ImageView;
 import android.widget.ImageButton;
 import android.widget.Button;
 import android.widget.Toast;
-//import android.util.Log;
+import android.util.Log;
 
 /**
  * This is the main activity. The activity that is presented to the user
@@ -71,6 +71,8 @@ import android.widget.Toast;
  *
  */
 public final class Main extends ListActivity {
+	public static final String ACTION_WIDGET = "com.nexes.manager.Main.ACTION_WIDGET";
+	
 	private static final String PREFS_NAME = "ManagerPrefsFile";	//user preference file name
 	private static final String PREFS_HIDDEN = "hidden";
 	private static final String PREFS_COLOR = "color";
@@ -180,9 +182,16 @@ public final class Main extends ListActivity {
         	}
         }
     
-        if(getIntent().getAction().equals(Intent.ACTION_GET_CONTENT)) {
+        Intent intent = getIntent();
+        
+        if(intent.getAction().equals(Intent.ACTION_GET_CONTENT)) {
         	bimg[5].setVisibility(View.GONE);
         	mReturnIntent = true;
+        
+        } else if (intent.getAction().equals(ACTION_WIDGET)) {
+        	Log.e("MAIN", "Widget action, string = " + intent.getExtras().getString("folder"));
+        	mHandler.updateDirectory(mFileMag.getNextDir(intent.getExtras().getString("folder"), true));
+        	
         }
     }
 
@@ -252,6 +261,7 @@ public final class Main extends ListActivity {
     	} else {
 	    	if (file.isDirectory()) {
 				if(file.canRead()) {
+					mHandler.stopThumbnailThread();
 		    		mHandler.updateDirectory(mFileMag.getNextDir(item, false));
 		    		mPathLabel.setText(mFileMag.getCurrentDir());
 		    		
