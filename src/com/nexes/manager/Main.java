@@ -844,6 +844,8 @@ public final class Main extends ListActivity {
     			Toast.makeText(Main.this, "Multi-select is now off", Toast.LENGTH_SHORT).show();
     		
     		} else {
+    			//stop updating thumbnail icons if its running
+    			mHandler.stopThumbnailThread();
 	    		mHandler.updateDirectory(mFileMag.getPreviousDir());
 	    		mPathLabel.setText(mFileMag.getCurrentDir());
     		}

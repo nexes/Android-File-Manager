@@ -31,7 +31,6 @@ import android.view.View.OnClickListener;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Button;
-import android.util.Log;
 
 public class DirectoryInfo extends Activity {
 	private static final int KB = 1024;

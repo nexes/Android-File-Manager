@@ -79,6 +79,7 @@ public class EventHandler implements OnClickListener {
 	private final FileManager mFileMang;
 	private ThumbnailCreator mThumbnail;
 	private TableRow mDelegate;
+	
 	private boolean multi_select_flag = false;
 	private boolean delete_after_copy = false;
 	private boolean thumbnail_flag = true;
@@ -275,9 +276,16 @@ public class EventHandler implements OnClickListener {
 		new BackgroundWork(ZIP_TYPE).execute(zipPath);
 	}
 	
+	/**
+	 * this will stop our background thread that creates thumbnail icons
+	 * if the thread is running. this should be stopped when ever 
+	 * we leave the folder the image files are in.
+	 */
 	public void stopThumbnailThread() {
-		if (mThumbnail != null)
+		if (mThumbnail != null) {
+			mThumbnail.setCancelThumbnails(true);
 			mThumbnail = null;
+		}
 	}
 
 	/**
@@ -296,6 +304,8 @@ public class EventHandler implements OnClickListener {
 						Toast.makeText(mContext, "Multi-select is now off", 
 									   Toast.LENGTH_SHORT).show();
 					}
+					
+					stopThumbnailThread();
 					updateDirectory(mFileMang.getPreviousDir());
 					if(mPathLabel != null)
 						mPathLabel.setText(mFileMang.getCurrentDir());
@@ -308,6 +318,8 @@ public class EventHandler implements OnClickListener {
 					Toast.makeText(mContext, "Multi-select is now off", 
 								   Toast.LENGTH_SHORT).show();
 				}
+				
+				stopThumbnailThread();
 				updateDirectory(mFileMang.setHomeDir("/sdcard"));
 				if(mPathLabel != null)
 					mPathLabel.setText(mFileMang.getCurrentDir());
@@ -526,7 +538,6 @@ public class EventHandler implements OnClickListener {
     	private final int MG = KB * KB;
     	private final int GB = MG * KB;    	
     	private String display_size;
-    	private String dir_name = "/sdcard";
     	private ArrayList<Integer> positions;
     	private LinearLayout hidden_layout;
     	
