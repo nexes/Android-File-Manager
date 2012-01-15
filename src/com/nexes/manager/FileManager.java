@@ -626,10 +626,6 @@ public class FileManager {
 	}
 	
 	/*
-	 * This function will be rewritten as there is a problem getting
-	 * the directory size in certain folders from root. ex /sys, /proc.
-	 * The app will continue until a stack overflow. get size is fine uder the 
-	 * sdcard folder.
 	 * 
 	 * @param path
 	 */
@@ -641,14 +637,30 @@ public class FileManager {
 			len = list.length;
 			
 			for (int i = 0; i < len; i++) {
-				if(list[i].isFile() && list[i].canRead()) {
-					mDirSize += list[i].length();
-					
-				} else if(list[i].isDirectory() && list[i].canRead()) { 
-					get_dir_size(list[i]);
+				try {
+					if(list[i].isFile() && list[i].canRead()) {
+						mDirSize += list[i].length();
+
+					} else if(list[i].isDirectory() && list[i].canRead() && !isSymlink(list[i])) { 
+						get_dir_size(list[i]);
+					}
+				} catch(IOException e) {
+					Log.e("IOException", e.getMessage());
 				}
 			}
 		}
+	}
+	
+	// Inspired by org.apache.commons.io.FileUtils.isSymlink()
+	private static boolean isSymlink(File file) throws IOException {
+		File fileInCanonicalDir = null;
+		if (file.getParent() == null) {
+			fileInCanonicalDir = file;
+		} else {
+			File canonicalDir = file.getParentFile().getCanonicalFile();
+			fileInCanonicalDir = new File(canonicalDir, file.getName());
+		}
+		return !fileInCanonicalDir.getCanonicalFile().equals(fileInCanonicalDir.getAbsoluteFile());
 	}
 
 	/*
